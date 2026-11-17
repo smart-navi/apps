@@ -3,17 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI相談室でやり方を聞く練習 | smart-navi シミュレーター</title>
-  <!-- Tailwind CSS -->
+  <title>AI相談室でやり方を聞く練習 | smart-navi</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 共通スタイルシート -->
   <link rel="stylesheet" href="../assets/simulator-common.css" />
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- =====================================================================
-       上部ヘッダー（パンくず・タイトル・アクセシビリティ設定）
-       ===================================================================== -->
   <header class="app-header sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -24,11 +19,7 @@
         <div>
           <nav aria-label="パンくずリスト" class="text-[11px] font-semibold flex items-center gap-1.5 mb-0.5"
             style="color: var(--text-muted);">
-            <a href="../index.html" class="hover:underline" style="color: var(--accent-primary);">レッスン一覧</a>
-            <span>＞</span>
-            <a href="./index.html" class="hover:underline" style="color: var(--accent-primary);">AIにやり方を聞く</a>
-            <span>＞</span>
-            <span>練習画面</span>
+            <a href="../index.html" class="hover:underline" style="color: var(--accent-primary);">レッスン一覧</a><span>＞</span><a href="./index.html" class="hover:underline" style="color: var(--accent-primary);">AIにやり方を聞く</a><span>＞</span><span>練習画面</span>
           </nav>
           <h1 class="text-base sm:text-lg font-bold leading-tight" style="color: var(--text-primary);">
             AI相談室で「交通系ICカードの使い方」を聞く練習
@@ -36,14 +27,13 @@
         </div>
       </div>
 
-      <!-- 文字サイズ・配色・やり直しコントロール -->
       <div class="flex flex-wrap items-center gap-3 sm:gap-4">
         <div class="flex items-center gap-2">
           <span id="fontSizeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
             文字サイズ：標準
           </span>
           <button type="button" id="fontToggleBtn" role="switch" aria-checked="false"
-            onclick="SmartNaviCommon.toggleFontSize(onPrefUpdated)"
+            onclick="SmartNaviCommon.toggleFontSize(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
             class="ui-toggle" aria-label="文字サイズを標準と大きめで切り替える"></button>
         </div>
 
@@ -52,132 +42,95 @@
             配色：ライト
           </span>
           <button type="button" id="themeToggleBtn" role="switch" aria-checked="false"
-            onclick="SmartNaviCommon.toggleTheme(onPrefUpdated)"
+            onclick="SmartNaviCommon.toggleTheme(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
             class="ui-toggle" aria-label="配色をライトとダークで切り替える"></button>
         </div>
-
-        <button type="button" onclick="resetLesson()"
-          class="ui-btn px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5">
-          <span>↺ 最初からやり直す</span>
-        </button>
+        <button type="button" onclick="resetLesson()" class="ui-btn px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5"><span>↺ 最初からやり直す</span></button>
       </div>
     </div>
   </header>
 
-  <!-- =====================================================================
-       メイン2カラム領域
-       ===================================================================== -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-
-    <!-- ===================================================================
-         左カラム：バーチャルスマートフォン（5カラム）
-         =================================================================== -->
+    <!-- 左カラム：バーチャルスマートフォン -->
     <section class="lg:col-span-5 flex flex-col items-center">
       <div class="ui-card w-full max-w-[440px] p-4 flex flex-col items-center">
-
         <div class="w-full flex items-center justify-between gap-2 mb-2.5">
-          <span class="text-xs font-bold" style="color: var(--text-secondary);">
-            📱 練習用スマートフォン
-          </span>
-          <button type="button" onclick="recoverToSafePoint()"
-            class="ui-btn px-2.5 py-1 text-xs flex items-center gap-1">
+          <span class="text-xs font-bold" style="color: var(--text-secondary);">📱 練習用スマートフォン</span>
+          <button type="button" onclick="recoverToSafePoint()" class="ui-btn px-2.5 py-1 text-xs flex items-center gap-1">
             <span>🧭 迷子になったら現在ステップへ戻る</span>
           </button>
         </div>
 
-        <!-- スマートフォン実機フレーム -->
         <div class="relative w-full max-w-[340px] h-[640px] bg-[#1E293B] rounded-[36px] p-2.5 shadow-xl border-[3px] border-[#334155] flex flex-col shrink-0">
-          <!-- 受話口スピーカー -->
           <div class="h-4 flex items-center justify-center gap-2 mb-1">
             <div class="w-12 h-1 bg-[#475569] rounded-full"></div>
             <div class="w-2 h-2 bg-[#334155] border border-[#64748B] rounded-full"></div>
           </div>
 
-          <!-- ディスプレイ画面枠 -->
           <div class="relative flex-1 w-full rounded-[24px] overflow-hidden flex flex-col justify-between bg-[#F1F5F9] text-[#0F172A] select-none">
-
-            <!-- 最上部ステータスバー ＋ 改札タッチエリア -->
+            <!-- ステータスバー ＋ 改札タッチエリア -->
             <div class="relative z-20 px-3 py-1.5 bg-[#0F172A] text-white flex items-center justify-between text-xs font-semibold shrink-0">
               <div class="flex items-center gap-1.5">
                 <span>14:30</span>
                 <span class="px-1.5 py-0.2 rounded bg-[#1E293B] text-[#CBD5E1] text-[10px]">接続良好</span>
               </div>
-              <button type="button" id="phoneTopIcSensorBtn" onclick="TouchGateController.tapReader()"
+              <button type="button" onclick="TouchGateController.tapReader()"
                 class="px-2 py-0.5 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition">
                 <span>📡 改札かざし部</span>
               </button>
             </div>
 
-            <!-- =============================================================
-                 排他的スクリーンコンテナ（常に1つの画面だけが display: flex）
-                 ============================================================= -->
             <div class="relative flex-1 w-full overflow-hidden">
-
-              <!-- -----------------------------------------------------------
-                   画面1：ホーム画面（screenHome）
-                   ----------------------------------------------------------- -->
-              <div id="screenHome" aria-hidden="false"
-                class="phone-screen-panel clean-scroll p-3.5 justify-between"
+              <!-- 画面1：ホーム画面 -->
+              <div id="screenHome" aria-hidden="false" class="phone-screen-panel clean-scroll p-3.5 justify-between"
                 style="display: flex; background-color: #DCE9F8;">
-
                 <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1]">
                   <div class="flex items-center justify-between">
                     <div>
                       <div class="text-2xl font-bold text-[#0F172A]">14:30</div>
                       <div class="text-xs font-semibold text-[#475569]">11月17日（火）・晴れ</div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-[#EBF4FF] text-[#0067C0] text-xs font-bold">
-                      ホーム画面
-                    </span>
+                    <span class="px-2.5 py-1 rounded-full bg-[#EBF4FF] text-[#0067C0] text-xs font-bold">ホーム画面</span>
                   </div>
                 </div>
 
-                <!-- 主要アプリアイコン -->
                 <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1]">
-                  <div class="text-xs font-bold text-[#475569] mb-2.5 text-center">
-                    使いたいアプリを押してください
-                  </div>
+                  <div class="text-xs font-bold text-[#475569] mb-2.5 text-center">使いたいアプリを押してください</div>
                   <div class="grid grid-cols-3 gap-2.5">
-                    <!-- AI相談室 -->
                     <button type="button" onclick="ScreenRouter.openApp('ai')"
-                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] border border-transparent hover:border-[#0067C0]/30 cursor-pointer">
+                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
                       <span id="badgeHomeAi" aria-hidden="true" style="display: none;"
                         class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-[#CA8A04] text-white text-[9px] font-bold">待機中</span>
                       <span class="w-11 h-11 rounded-[10px] bg-[#0067C0] text-white flex items-center justify-center text-xl">🤖</span>
                       <span class="text-xs font-bold text-[#0F172A]">AI相談室</span>
                     </button>
 
-                    <!-- 交通系ICカード -->
                     <button type="button" onclick="ScreenRouter.openApp('ic')"
-                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] border border-transparent hover:border-[#0067C0]/30 cursor-pointer">
+                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
                       <span id="badgeHomeIc" aria-hidden="true" style="display: none;"
                         class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-[#16A34A] text-white text-[9px] font-bold">残高あり</span>
                       <span class="w-11 h-11 rounded-[10px] bg-[#16A34A] text-white flex items-center justify-center text-xl">🚃</span>
                       <span class="text-xs font-bold text-[#0F172A]">交通系IC</span>
                     </button>
 
-                    <!-- 電話 -->
                     <button type="button" onclick="ScreenRouter.showHomeToast('今回は「🤖 AI相談室」と「🚃 交通系IC」を使います。')"
                       class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
                       <span class="w-11 h-11 rounded-[10px] bg-[#15803D] text-white flex items-center justify-center text-xl">📞</span>
                       <span class="text-xs font-bold text-[#0F172A]">電話</span>
                     </button>
 
-                    <!-- カメラ -->
                     <button type="button" onclick="ScreenRouter.showHomeToast('今回は「🤖 AI相談室」と「🚃 交通系IC」を使います。')"
                       class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
                       <span class="w-11 h-11 rounded-[10px] bg-[#334155] text-white flex items-center justify-center text-xl">📷</span>
                       <span class="text-xs font-bold text-[#0F172A]">カメラ</span>
                     </button>
 
-                    <!-- メモ帳 -->
                     <button type="button" onclick="ScreenRouter.showHomeToast('今回は「🤖 AI相談室」と「🚃 交通系IC」を使います。')"
                       class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
                       <span class="w-11 h-11 rounded-[10px] bg-[#D97706] text-white flex items-center justify-center text-xl">📝</span>
                       <span class="text-xs font-bold text-[#0F172A]">メモ帳</span>
                     </button>
 
-                    <!-- 履歴一覧 -->
                     <button type="button" onclick="ScreenRouter.navigate('recents', 'slide')"
                       class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
                       <span class="w-11 h-11 rounded-[10px] bg-[#64748B] text-white flex items-center justify-center text-xl">□</span>
@@ -186,27 +139,16 @@
                   </div>
                 </div>
 
-                <!-- ホーム画面案内メッセージ（排他表示） -->
                 <div id="homeToastBox" aria-hidden="true" style="display: none;"
-                  class="bg-[#0F172A] text-white rounded-[8px] p-2.5 text-xs font-semibold text-center">
-                </div>
+                  class="bg-[#0F172A] text-white rounded-[8px] p-2.5 text-xs font-semibold text-center"></div>
 
-                <!-- 改札通過案内カード -->
-                <div class="bg-white/95 rounded-[8px] p-2.5 border border-[#CBD5E1] text-center">
-                  <div class="text-[11px] font-bold text-[#334155]">
-                    🚉 改札を通るときはホーム画面のまま上部の「📡 改札かざし部」を押します
-                  </div>
+                <div class="bg-white/95 rounded-[8px] p-2.5 border border-[#CBD5E1] text-center text-[11px] font-bold text-[#334155]">
+                  🚉 改札を通るときはホーム画面のまま上部の「📡 改札かざし部」を押します
                 </div>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面2：AI相談室（チャット型AIアプリ：screenAi）
-                   ----------------------------------------------------------- -->
-              <div id="screenAi" aria-hidden="true"
-                class="phone-screen-panel"
-                style="display: none; background-color: #F8FAFC;">
-
-                <!-- アプリ上部ヘッダー -->
+              <!-- 画面2：AI相談室 -->
+              <div id="screenAi" aria-hidden="true" class="phone-screen-panel" style="display: none; background-color: #F8FAFC;">
                 <div class="px-3 py-2 bg-[#0067C0] text-white flex items-center justify-between shrink-0">
                   <div class="flex items-center gap-1.5">
                     <span class="text-sm">🤖</span>
@@ -215,26 +157,13 @@
                   <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">いつでも質問OK</span>
                 </div>
 
-                <!-- チャット履歴表示領域 -->
-                <div id="aiChatMessagesArea" class="flex-1 p-3 overflow-y-auto clean-scroll space-y-3">
-                  <!-- AIからの最初の挨拶 -->
-                  <div class="flex items-start gap-2">
-                    <span class="w-7 h-7 rounded-full bg-[#0067C0] text-white flex items-center justify-center text-xs shrink-0 mt-0.5">🤖</span>
-                    <div class="bg-white border border-[#CBD5E1] rounded-[10px] rounded-tl-none p-2.5 text-xs text-[#0F172A] leading-relaxed shadow-2xs">
-                      こんにちは！スマートフォンの使い方でわからないことがあれば、何でも聞いてください。<br>
-                      <span class="text-[#475569] text-[11px] mt-1 block">※ 右の「質問パーツ」を押すと、文字を打たずに質問できます。</span>
-                    </div>
-                  </div>
-                  <!-- 追加メッセージがここに挿入される -->
-                </div>
+                <div id="aiChatMessagesArea" class="flex-1 p-3 overflow-y-auto clean-scroll space-y-3"></div>
 
-                <!-- AI回答作成中インジケーター（排他表示） -->
                 <div id="aiTypingIndicator" aria-hidden="true" style="display: none;"
                   class="px-3 py-1.5 bg-[#EBF4FF] border-t border-[#CBD5E1] text-xs font-bold text-[#0067C0] flex items-center gap-2 shrink-0">
                   <span>🤖 AIがわかりやすい答えをまとめています…</span>
                 </div>
 
-                <!-- 下部質問入力ボックス＆送信ボタン -->
                 <div class="p-2.5 bg-white border-t border-[#CBD5E1] shrink-0">
                   <div class="flex items-stretch gap-1.5">
                     <div
@@ -254,15 +183,10 @@
                 </div>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面3：交通系ICカードアプリ（screenIc）
-                   ----------------------------------------------------------- -->
-              <div id="screenIc" aria-hidden="true"
-                class="phone-screen-panel clean-scroll p-3.5 justify-between"
+              <!-- 画面3：交通系ICカードアプリ -->
+              <div id="screenIc" aria-hidden="true" class="phone-screen-panel clean-scroll p-3.5 justify-between"
                 style="display: none; background-color: #FFFFFF;">
-
                 <div>
-                  <!-- アプリ上部バー -->
                   <div class="px-3 py-2 -mx-3.5 -mt-3.5 mb-3 bg-[#16A34A] text-white flex items-center justify-between">
                     <div class="flex items-center gap-1.5">
                       <span class="text-sm">🚃</span>
@@ -271,25 +195,20 @@
                     <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">カード不要</span>
                   </div>
 
-                  <!-- 仮想ICカード券面 -->
                   <div class="rounded-[12px] p-3.5 bg-[#065F46] text-white shadow-sm mb-3">
                     <div class="flex items-center justify-between text-[11px] opacity-90 mb-2">
                       <span>モバイル交通系IC</span>
                       <span>大人・記名式</span>
                     </div>
                     <div class="text-[11px] opacity-85">現在のチャージ残高</div>
-                    <div id="icBalanceAmount" class="text-2xl font-extrabold tracking-wide mt-0.5">
-                      120 円
-                    </div>
+                    <div id="icBalanceAmount" class="text-2xl font-extrabold tracking-wide mt-0.5">120 円</div>
                   </div>
 
-                  <!-- AIの教えの振り返りメモ -->
                   <div class="p-2.5 rounded-[8px] bg-[#EBF4FF] border border-[#0067C0]/30 text-xs text-[#0F172A] mb-3">
                     <span class="font-bold text-[#0067C0]">🤖 AIのアドバイス：</span>
                     「入金（チャージ）」で残高を増やした後、<strong>「○ ホーム」で画面を閉じてから</strong>改札にかざします。
                   </div>
 
-                  <!-- チャージ金額セット枠 -->
                   <label class="block text-xs font-bold text-[#334155] mb-1">入金（チャージ）する金額</label>
                   <div
                     ondragover="event.preventDefault(); this.classList.add('drop-target-active');"
@@ -308,57 +227,44 @@
                 </button>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面4：開いたアプリの履歴画面（screenRecents）
-                   ----------------------------------------------------------- -->
-              <div id="screenRecents" aria-hidden="true"
-                class="phone-screen-panel clean-scroll p-3.5 justify-between text-white"
+              <!-- 画面4：履歴画面 -->
+              <div id="screenRecents" aria-hidden="true" class="phone-screen-panel clean-scroll p-3.5 justify-between text-white"
                 style="display: none; background-color: #1E293B;">
                 <div>
                   <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-white/15">
                     <h2 class="font-bold text-sm">□ 開いているアプリの履歴</h2>
                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/15">切り替え画面</span>
                   </div>
-                  <p class="text-xs text-[#CBD5E1] mb-3 leading-relaxed">
-                    AIの回答をもう一度読み返したいときは「🤖 AI相談室」を押して戻れます。
-                  </p>
+                  <p class="text-xs text-[#CBD5E1] mb-3 leading-relaxed">AIの回答をもう一度読み返したいときは「🤖 AI相談室」を押して戻れます。</p>
                   <div id="recentsCardsContainer" class="space-y-2.5"></div>
                 </div>
-
                 <button type="button" onclick="ScreenRouter.navigate('home', 'zoom')"
                   class="mt-3 w-full py-2.5 rounded-[8px] bg-white/15 hover:bg-white/25 text-white font-bold text-xs cursor-pointer">
                   ○ ホーム画面へ戻る
                 </button>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面5：自動改札機タッチ結果画面（screenGateResult）
-                   ----------------------------------------------------------- -->
-              <div id="screenGateResult" aria-hidden="true"
-                class="phone-screen-panel clean-scroll p-4 justify-center items-center text-center"
+              <!-- 画面5：改札通過結果画面 -->
+              <div id="screenGateResult" aria-hidden="true" class="phone-screen-panel clean-scroll p-4 justify-center items-center text-center"
                 style="display: none; background-color: #FFFFFF;">
-                <div class="w-16 h-16 rounded-full bg-[#DCFCE7] text-[#15803D] flex items-center justify-center text-3xl font-bold mb-3">
-                  ♪
-                </div>
-                <div class="px-3 py-1 rounded-full bg-[#DCFCE7] text-[#15803D] text-xs font-extrabold mb-2">
-                  ピピッ！改札を通過しました
-                </div>
-                <h3 class="font-bold text-base text-[#0F172A] mb-1.5">
-                  AIに聞いた通りにできました！
-                </h3>
+                <div class="w-16 h-16 rounded-full bg-[#DCFCE7] text-[#15803D] flex items-center justify-center text-3xl font-bold mb-3">♪</div>
+                <div class="px-3 py-1 rounded-full bg-[#DCFCE7] text-[#15803D] text-xs font-extrabold mb-2">ピピッ！改札を通過しました</div>
+                <h3 class="font-bold text-base text-[#0F172A] mb-1.5">AIに聞いた通りにできました！</h3>
                 <p class="text-xs text-[#334155] leading-relaxed mb-4">
                   残り残高：<strong>1,120 円</strong><br>
                   アプリを開いたままにしなくても、スマホ上部を改札機にかざすだけで反応することが体験できました。
                 </p>
-                <button type="button" onclick="resetLesson()"
-                  class="w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs cursor-pointer">
-                  もう一度最初から練習する
-                </button>
+                <div class="w-full space-y-2">
+                  <a href="../index.html" class="block w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs no-underline">
+                    レッスン一覧へ戻る
+                  </a>
+                  <button type="button" onclick="resetLesson()" class="w-full py-2 rounded-[8px] bg-[#F1F5F9] text-[#334155] font-bold text-xs cursor-pointer">
+                    もう一度最初から練習する
+                  </button>
+                </div>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面6：排他的モーダル確認ダイアログ（modalConfirmDialog）
-                   ----------------------------------------------------------- -->
+              <!-- 画面6：確認ダイアログ -->
               <div id="modalConfirmDialog" aria-hidden="true" role="dialog" aria-modal="true"
                 class="phone-screen-panel p-4 justify-center items-center"
                 style="display: none; background-color: #0F172A;">
@@ -367,179 +273,120 @@
                     <span class="w-7 h-7 rounded-full bg-[#EBF4FF] text-[#0067C0] flex items-center justify-center font-bold text-sm">?</span>
                     <h3 id="confirmDialogTitle" class="font-bold text-sm text-[#0F172A]">確認</h3>
                   </div>
-                  <p id="confirmDialogMessage" class="text-xs text-[#334155] leading-relaxed mb-4">
-                    実行しますか？
-                  </p>
+                  <p id="confirmDialogMessage" class="text-xs text-[#334155] leading-relaxed mb-4"></p>
                   <div class="grid grid-cols-2 gap-2.5">
                     <button type="button" onclick="ConfirmDialog.reject()"
-                      class="py-2.5 px-3 rounded-[8px] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] font-bold text-xs text-[#334155] cursor-pointer">
-                      いいえ
-                    </button>
+                      class="py-2.5 px-3 rounded-[8px] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] font-bold text-xs text-[#334155] cursor-pointer">いいえ</button>
                     <button type="button" onclick="ConfirmDialog.accept()"
-                      class="py-2.5 px-3 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] text-white font-bold text-xs cursor-pointer">
-                      はい
-                    </button>
+                      class="py-2.5 px-3 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] text-white font-bold text-xs cursor-pointer">はい</button>
                   </div>
                 </div>
               </div>
-
             </div>
 
-            <!-- =============================================================
-                 最下部 3ボタンナビゲーションバー（戻る◁・ホーム○・履歴□）
-                 ============================================================= -->
+            <!-- 下部3ボタンナビゲーション -->
             <div class="relative z-20 bg-[#0F172A] text-white px-2 py-1.5 flex items-center justify-around border-t border-white/15 shrink-0">
               <button type="button" onclick="ScreenRouter.pressBack()"
                 class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 flex flex-col items-center justify-center cursor-pointer">
                 <span class="text-sm font-bold leading-none">◁</span>
                 <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">戻る</span>
               </button>
-
               <button type="button" onclick="ScreenRouter.pressHome()"
                 class="flex-1 py-1 mx-1 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] flex flex-col items-center justify-center cursor-pointer">
                 <span class="text-sm font-bold leading-none">○</span>
                 <span class="text-[10px] font-bold mt-1 text-white">ホーム</span>
               </button>
-
               <button type="button" onclick="ScreenRouter.pressRecents()"
                 class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 flex flex-col items-center justify-center cursor-pointer">
                 <span class="text-sm font-bold leading-none">□</span>
                 <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">履歴</span>
               </button>
             </div>
-
           </div>
         </div>
 
-        <!-- 改札機センサー補助ボタン（スマホの外側からも押せる大きな練習ボタン） -->
-        <button type="button" id="externalGateSensorBtn" onclick="TouchGateController.tapReader()"
+        <button type="button" onclick="TouchGateController.tapReader()"
           class="ui-btn w-full mt-3 py-2.5 px-3 text-xs sm:text-sm flex items-center justify-center gap-2">
           <span>🚉 自動改札機の読み取り部にスマホをかざす（タッチ体験）</span>
         </button>
       </div>
     </section>
 
-    <!-- ===================================================================
-         右カラム：ステップ案内・立体階層マップ・共通パーツトレイ（7カラム）
-         =================================================================== -->
+    <!-- 右カラム：ステップ案内・立体階層マップ・共通パーツトレイ -->
     <section class="lg:col-span-7 flex flex-col gap-4">
-
-      <!-- 1. 現在のステップ案内パネル -->
       <div class="ui-card p-4 sm:p-5 border-l-4" style="border-left-color: var(--accent-primary);">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div class="flex items-center gap-2">
             <span id="lessonStepCounter" class="px-2.5 py-0.5 rounded-full text-xs font-bold"
-              style="background-color: var(--accent-primary); color: var(--accent-text);">
-              ステップ 1 / 6
-            </span>
-            <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">
-              AI相談室に質問して交通系ICカードを使う
-            </h2>
+              style="background-color: var(--accent-primary); color: var(--accent-text);">ステップ 1 / 6</span>
+            <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">AI相談室に質問して交通系ICカードを使う</h2>
           </div>
-
           <button type="button" id="toggleStepHintBtn" aria-expanded="false" onclick="toggleHint()"
-            class="ui-btn px-3 py-1.5 text-xs flex items-center gap-1">
-            <span>💡 ヒントを見る</span>
-          </button>
+            class="ui-btn px-3 py-1.5 text-xs flex items-center gap-1"><span>💡 ヒントを見る</span></button>
         </div>
 
         <div class="ui-card-sub p-3.5">
-          <div id="stepInstructionTitle" class="font-bold text-sm sm:text-base mb-1" style="color: var(--accent-primary);">
-            1. 「🤖 AI相談室」アプリを開きましょう
-          </div>
-          <p id="stepInstructionDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);">
-            わからない操作があるときは、まずAIに話し言葉で聞いてみましょう。スマホのホーム画面にある青い「🤖 AI相談室」を押してください。
-          </p>
+          <div id="stepInstructionTitle" class="font-bold text-sm sm:text-base mb-1" style="color: var(--accent-primary);"></div>
+          <p id="stepInstructionDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);"></p>
         </div>
 
-        <!-- 排他的ヒントパネル -->
-        <div id="stepHintPanel" aria-hidden="true" style="display: none;"
-          class="mt-3 p-3.5 rounded-[8px] border"
+        <div id="stepHintPanel" aria-hidden="true" style="display: none;" class="mt-3 p-3.5 rounded-[8px] border"
           style="background-color: var(--accent-tint); border-color: var(--accent-primary);">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-xs" style="color: var(--accent-primary);">💡 操作のヒント</span>
-            <button type="button" onclick="toggleHint(false)"
-              class="text-xs font-bold px-2 py-0.5 rounded cursor-pointer" style="color: var(--text-secondary);">
-              ✕ 閉じる
-            </button>
+            <button type="button" onclick="toggleHint(false)" class="text-xs font-bold px-2 py-0.5 rounded cursor-pointer" style="color: var(--text-secondary);">✕ 閉じる</button>
           </div>
-          <p id="stepHintText" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);">
-            ヒント内容
-          </p>
+          <p id="stepHintText" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);"></p>
         </div>
 
-        <!-- ステップ進行バー -->
         <div id="stepProgressDots" class="flex items-center gap-1.5 mt-3"></div>
       </div>
 
-      <!-- 2. スマホ立体階層マップ（AI相談室と実践アプリの連携） -->
+      <!-- 立体階層マップ -->
       <div class="ui-card p-4 sm:p-5">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-          <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">
-            🗺️ スマホ立体階層マップ（相談アプリ・実践アプリ・改札センサー）
-          </h2>
+          <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">🗺️ スマホ立体階層マップ（相談アプリ・実践アプリ・改札センサー）</h2>
           <span id="layerStatusSummaryBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full"
-            style="background-color: var(--accent-tint); color: var(--accent-primary);">
-            現在地：ホーム画面
-          </span>
+            style="background-color: var(--accent-tint); color: var(--accent-primary);">現在地：ホーム画面</span>
         </div>
-
-        <p id="layerExplanationText" class="text-xs sm:text-sm leading-relaxed mb-3" style="color: var(--text-secondary);">
-          「AI相談室」でやり方を聞いたあと、ホーム画面へ戻って「交通系IC」アプリでチャージし、最後はアプリを閉じた状態で改札にかざします。
-        </p>
-
+        <p id="layerExplanationText" class="text-xs sm:text-sm leading-relaxed mb-3" style="color: var(--text-secondary);"></p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <!-- 層1：AI相談室 -->
           <div id="layerCardAi" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
             <span id="layerPillAi" class="ui-pill mt-0.5" style="display: none;"></span>
             <div class="flex-1">
               <div class="text-[11px] font-bold" style="color: var(--text-muted);">調べる場所</div>
-              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🤖 AI相談室</div>
-              <div id="layerSubAi" class="text-[11px] mt-1" style="color: var(--text-secondary);">やり方を質問するアプリ</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🤖 AI相談室</div>
+              <div class="text-[11px] mt-1" style="color: var(--text-secondary);">やり方を質問するアプリ</div>
             </div>
           </div>
-
-          <!-- 層2：交通系ICアプリ -->
           <div id="layerCardIc" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
             <span id="layerPillIc" class="ui-pill mt-0.5" style="display: none;"></span>
             <div class="flex-1">
               <div class="text-[11px] font-bold" style="color: var(--text-muted);">設定・入金する場所</div>
-              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🚃 交通系ICアプリ</div>
-              <div id="layerSubIc" class="text-[11px] mt-1" style="color: var(--text-secondary);">残高確認とチャージ</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🚃 交通系ICアプリ</div>
+              <div class="text-[11px] mt-1" style="color: var(--text-secondary);">残高確認とチャージ</div>
             </div>
           </div>
-
-          <!-- 層3：ホーム＆改札センサー -->
           <div id="layerCardGate" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
             <span id="layerPillGate" class="ui-pill mt-0.5" style="display: none;"></span>
             <div class="flex-1">
               <div class="text-[11px] font-bold" style="color: var(--text-muted);">改札を通るとき</div>
-              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🏠 ホーム ＋ 📡 改札</div>
-              <div id="layerSubGate" class="text-[11px] mt-1" style="color: var(--text-secondary);">アプリを閉じてかざす</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🏠 ホーム ＋ 📡 改札</div>
+              <div class="text-[11px] mt-1" style="color: var(--text-secondary);">アプリを閉じてかざす</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 3. 共通パーツトレイ（質問文パーツ＆チャージパーツ） -->
+      <!-- 共通パーツトレイ -->
       <div class="ui-card p-4 sm:p-5">
-        <div class="flex items-center justify-between mb-1.5">
-          <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">
-            🧩 共通パーツトレイ（押すだけで質問文や金額をセット）
-          </h2>
-        </div>
-        <p class="text-xs sm:text-sm mb-3" style="color: var(--text-secondary);">
-          小さな文字盤で長い質問を打たなくても、下のパーツを押すだけでAIへの質問欄や入金欄にセットできます。
-        </p>
+        <h2 class="font-bold text-sm sm:text-base mb-1.5" style="color: var(--text-primary);">🧩 共通パーツトレイ（押すだけで質問文や金額をセット）</h2>
+        <p class="text-xs sm:text-sm mb-3" style="color: var(--text-secondary);">小さな文字盤で長い質問を打たなくても、下のパーツを押すだけでAIへの質問欄や入金欄にセットできます。</p>
         <div id="tokenTrayContainer" class="flex flex-wrap gap-2.5"></div>
       </div>
-
     </section>
   </main>
 
-  <!-- =====================================================================
-       共通フッター
-       ===================================================================== -->
   <footer class="app-footer mt-auto py-4 px-4 sm:px-6">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
       <div>smart-navi スマートフォン操作練習シミュレーター</div>
@@ -547,12 +394,7 @@
     </div>
   </footer>
 
-  <!-- 共通スクリプト -->
   <script src="../assets/simulator-common.js"></script>
-
-  <!-- =====================================================================
-       本レッスン固有ロジック（AI相談室 × 交通系ICカード実践）
-       ===================================================================== -->
   <script>
     const LESSON_SLUG = 'ai-assistant';
 
@@ -569,28 +411,14 @@
         desc: '下の「共通パーツトレイ」にある「交通系ICカードにチャージする方法を教えて」を押して質問欄に入れ、スマホの「送信 ➤」を押してください。',
         hint: 'まず右下の「💬 交通系ICカードにチャージする方法を教えて」を押し、次にスマホ右下の「送信 ➤」を押します。',
         safeScreen: 'ai',
-        tokens: [
-          {
-            id: 'q_charge',
-            icon: '💬',
-            label: '交通系ICカードにチャージする方法を教えて',
-            text: '交通系ICカードにチャージする方法を教えて'
-          }
-        ]
+        tokens: [{ id: 'q_charge', icon: '💬', label: '交通系ICカードにチャージする方法を教えて', text: '交通系ICカードにチャージする方法を教えて' }]
       },
       {
         title: '3. 改札での使い方も追加でAIに質問しましょう',
         desc: 'もう一つ気になることを聞きます。「改札を通るときはアプリを開いたままにするの？」パーツをセットして「送信 ➤」を押してください。',
         hint: '右下の「💬 改札を通るときはアプリを開いたままにするの？」を押し、スマホの「送信 ➤」を押すとAIが答えてくれます。',
         safeScreen: 'ai',
-        tokens: [
-          {
-            id: 'q_gate',
-            icon: '💬',
-            label: '改札を通るときはアプリを開いたままにするの？',
-            text: '改札を通るときはアプリを開いたままにするの？'
-          }
-        ]
+        tokens: [{ id: 'q_gate', icon: '💬', label: '改札を通るときはアプリを開いたままにするの？', text: '改札を通るときはアプリを開いたままにするの？' }]
       },
       {
         title: '4. AIの答えの通りに「🚃 交通系IC」アプリを開きましょう',
@@ -604,14 +432,7 @@
         desc: '下の「💴 1,000円チャージ」パーツを押して金額をセットし、「入金（チャージ）を確定する」→「はい」を押してください。',
         hint: '右下の「💴 1,000円チャージ」を押し、緑の「入金（チャージ）を確定する」ボタンを押して確認画面で「はい」を選びます。',
         safeScreen: 'ic',
-        tokens: [
-          {
-            id: 'tok_1000',
-            icon: '💴',
-            label: '1,000円チャージ',
-            amount: 1000
-          }
-        ]
+        tokens: [{ id: 'tok_1000', icon: '💴', label: '1,000円チャージ', amount: 1000 }]
       },
       {
         title: '6. 「○ ホーム」でアプリを閉じて、改札にかざしましょう！',
@@ -630,8 +451,6 @@
       runningApps: [],
       draftQuestionId: '',
       draftQuestionText: '',
-      askedCharge: false,
-      askedGate: false,
       aiBusy: false,
       icBalance: 120,
       chargeAmountSelected: 0,
@@ -646,345 +465,249 @@
       gateResult: 'screenGateResult'
     };
 
-    // ---------------------------------------------------------------------
-    // 画面遷移コントローラー
-    // ---------------------------------------------------------------------
     const ScreenRouter = {
       navigate(targetKey, animType = 'zoom') {
         ConfirmDialog.close();
         LessonState.activeScreen = targetKey;
         SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, targetKey, animType);
 
-        if (targetKey === 'home') {
-          this.updateHomeBadges();
-        } else if (targetKey === 'recents') {
-          this.renderRecents();
-        }
+        if (targetKey === 'home') this.updateHomeBadges();
+        else if (targetKey === 'recents') this.renderRecents();
 
-        this.evaluateStepOnNavigation(targetKey);
+        if (!LessonState.completed) {
+          if (LessonState.stepIndex === 0 && targetKey === 'ai') advanceStep(1);
+          else if (LessonState.stepIndex === 3 && targetKey === 'ic') advanceStep(4);
+        }
         LayerMap.render();
       },
-
       openApp(appKey) {
-        if (!LessonState.runningApps.includes(appKey)) {
-          LessonState.runningApps.push(appKey);
-        }
+        if (!LessonState.runningApps.includes(appKey)) LessonState.runningApps.push(appKey);
         this.navigate(appKey, 'zoom');
       },
-
-      pressHome() {
-        this.navigate('home', 'zoom');
-      },
-
+      pressHome() { this.navigate('home', 'zoom'); },
       pressBack() {
-        if (LessonState.activeScreen !== 'home') {
-          this.navigate('home', 'zoom');
-        }
+        if (LessonState.activeScreen !== 'home') this.navigate('home', 'zoom');
       },
-
       pressRecents() {
-        if (LessonState.activeScreen === 'recents') {
-          this.navigate('home', 'zoom');
-        } else {
-          this.navigate('recents', 'slide');
-        }
+        if (LessonState.activeScreen === 'recents') this.navigate('home', 'zoom');
+        else this.navigate('recents', 'slide');
       },
-
       updateHomeBadges() {
-        const aiBadge = document.getElementById('badgeHomeAi');
-        const icBadge = document.getElementById('badgeHomeIc');
-
-        const aiWaiting = LessonState.runningApps.includes('ai');
-        aiBadge.style.display = aiWaiting ? 'inline-block' : 'none';
-        aiBadge.setAttribute('aria-hidden', aiWaiting ? 'false' : 'true');
-
-        const icCharged = LessonState.chargedDone;
-        icBadge.style.display = icCharged ? 'inline-block' : 'none';
-        icBadge.setAttribute('aria-hidden', icCharged ? 'false' : 'true');
+        const aiB = document.getElementById('badgeHomeAi');
+        const icB = document.getElementById('badgeHomeIc');
+        const aiW = LessonState.runningApps.includes('ai');
+        aiB.style.display = aiW ? 'inline-block' : 'none';
+        aiB.setAttribute('aria-hidden', aiW ? 'false' : 'true');
+        icB.style.display = LessonState.chargedDone ? 'inline-block' : 'none';
+        icB.setAttribute('aria-hidden', LessonState.chargedDone ? 'false' : 'true');
       },
-
       renderRecents() {
         const container = document.getElementById('recentsCardsContainer');
-        const metaMap = {
-          ai: { icon: '🤖', name: '暮らしのAI相談室', color: '#0067C0', desc: 'AIの回答履歴を確認できます' },
-          ic: { icon: '🚃', name: '交通系ICカード', color: '#16A34A', desc: `残高：${LessonState.icBalance.toLocaleString()}円` }
-        };
-
         if (LessonState.runningApps.length === 0) {
-          container.innerHTML = `<div class="p-3 rounded-[8px] bg-white/10 text-xs text-center">開いているアプリはありません</div>`;
+          container.innerHTML = `<div class="p-3 rounded-[8px] bg-white/10 text-xs text-[#CBD5E1]">まだ開いているアプリはありません。</div>`;
           return;
         }
-
-        container.innerHTML = [...LessonState.runningApps].reverse().map(key => {
-          const m = metaMap[key];
+        const meta = {
+          ai: { icon: '🤖', name: '暮らしのAI相談室', color: '#0067C0', status: 'AIの回答をいつでも読み返せます' },
+          ic: { icon: '🚃', name: '交通系ICカード', color: '#16A34A', status: `現在の残高：${LessonState.icBalance.toLocaleString()} 円` }
+        };
+        container.innerHTML = [...LessonState.runningApps].reverse().map(id => {
+          const m = meta[id];
           if (!m) return '';
           return `
-            <button type="button" onclick="ScreenRouter.openApp('${key}')"
-              class="w-full p-3 rounded-[10px] bg-white text-[#0F172A] flex items-center justify-between text-left cursor-pointer">
+            <button type="button" onclick="ScreenRouter.openApp('${id}')"
+              class="w-full p-3 rounded-[10px] bg-white text-[#0F172A] border border-[#CBD5E1] text-left cursor-pointer flex items-center justify-between">
               <div class="flex items-center gap-2.5">
-                <span class="w-10 h-10 rounded-[8px] text-white flex items-center justify-center text-lg"
-                  style="background-color: ${m.color};">${m.icon}</span>
-                <div>
-                  <div class="font-bold text-xs">${m.name}</div>
-                  <div class="text-[11px] text-[#475569]">${m.desc}</div>
-                </div>
+                <span class="w-10 h-10 rounded-[8px] text-white flex items-center justify-center text-lg" style="background-color: ${m.color};">${m.icon}</span>
+                <div><div class="font-bold text-xs">${m.name}</div><div class="text-[11px] text-[#475569]">${m.status}</div></div>
               </div>
               <span class="px-2 py-1 rounded bg-[#0067C0] text-white text-[11px] font-bold">開く</span>
             </button>
           `;
         }).join('');
       },
-
-      showHomeToast(text) {
+      showHomeToast(msg) {
         const box = document.getElementById('homeToastBox');
-        box.textContent = text;
+        box.textContent = msg;
         box.style.display = 'block';
         box.setAttribute('aria-hidden', 'false');
-        setTimeout(() => {
-          box.style.display = 'none';
-          box.setAttribute('aria-hidden', 'true');
-        }, 2600);
-      },
-
-      evaluateStepOnNavigation(targetKey) {
-        if (LessonState.completed) return;
-        if (LessonState.stepIndex === 0 && targetKey === 'ai') {
-          advanceStep(1);
-        } else if (LessonState.stepIndex === 3 && targetKey === 'ic') {
-          advanceStep(4);
-        }
+        setTimeout(() => { box.style.display = 'none'; box.setAttribute('aria-hidden', 'true'); }, 2600);
       }
     };
 
-    // ---------------------------------------------------------------------
-    // 排他的確認ダイアログ
-    // ---------------------------------------------------------------------
     const ConfirmDialog = {
-      callback: null,
-
+      cb: null,
       open(title, msg, onAccept) {
-        this.callback = onAccept;
+        this.cb = onAccept;
         Object.values(SCREEN_DOM_MAP).forEach(domId => {
           const el = document.getElementById(domId);
-          if (el) {
-            el.style.display = 'none';
-            el.setAttribute('aria-hidden', 'true');
-          }
+          if (el) { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); }
         });
         document.getElementById('confirmDialogTitle').textContent = title;
         document.getElementById('confirmDialogMessage').textContent = msg;
-        const dlg = document.getElementById('modalConfirmDialog');
-        dlg.style.display = 'flex';
-        dlg.setAttribute('aria-hidden', 'false');
+        const d = document.getElementById('modalConfirmDialog');
+        d.style.display = 'flex';
+        d.setAttribute('aria-hidden', 'false');
       },
-
       close() {
-        this.callback = null;
-        const dlg = document.getElementById('modalConfirmDialog');
-        if (dlg) {
-          dlg.style.display = 'none';
-          dlg.setAttribute('aria-hidden', 'true');
-        }
+        this.cb = null;
+        const d = document.getElementById('modalConfirmDialog');
+        if (d) { d.style.display = 'none'; d.setAttribute('aria-hidden', 'true'); }
       },
-
       accept() {
-        const fn = this.callback;
+        const fn = this.cb;
         this.close();
         SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, LessonState.activeScreen, 'zoom');
         if (typeof fn === 'function') fn();
       },
-
       reject() {
         this.close();
         SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, LessonState.activeScreen, 'zoom');
       }
     };
 
-    // ---------------------------------------------------------------------
-    // AI相談室コントローラー
-    // ---------------------------------------------------------------------
     const AiChatController = {
-      selectQuestionToken(tokenId) {
-        const step = STEPS[LessonState.stepIndex];
-        const tok = (step.tokens || []).find(t => t.id === tokenId);
-        if (!tok) return;
-
-        if (LessonState.activeScreen !== 'ai') {
-          ScreenRouter.openApp('ai');
-        }
-
-        LessonState.draftQuestionId = tok.id;
-        LessonState.draftQuestionText = tok.text;
-        this.renderDraftBox();
+      initChat() {
+        const area = document.getElementById('aiChatMessagesArea');
+        area.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="w-7 h-7 rounded-full bg-[#0067C0] text-white flex items-center justify-center text-xs shrink-0 mt-0.5">🤖</span>
+            <div class="bg-white border border-[#CBD5E1] rounded-[10px] rounded-tl-none p-2.5 text-xs text-[#0F172A] leading-relaxed shadow-2xs">
+              こんにちは！スマートフォンの使い方でわからないことがあれば、何でも気軽に質問してくださいね。
+            </div>
+          </div>
+        `;
+        this.clearDraft();
       },
+      setDraftQuestion(tokenObj) {
+        if (LessonState.aiBusy) return;
+        if (LessonState.activeScreen !== 'ai') ScreenRouter.openApp('ai');
+        LessonState.draftQuestionId = tokenObj.id;
+        LessonState.draftQuestionText = tokenObj.text;
 
-      onTapDraftBox() {
-        const step = STEPS[LessonState.stepIndex];
-        if (step && step.tokens && step.tokens.length > 0 && !LessonState.draftQuestionId) {
-          this.selectQuestionToken(step.tokens[0].id);
-        }
+        const box = document.getElementById('aiQuestionDraftBox');
+        box.textContent = tokenObj.text;
+        box.className = 'flex-1 p-2 rounded-[8px] border-2 text-xs font-bold cursor-pointer flex items-center min-h-[42px] bg-[#EBF4FF] border-[#0067C0] text-[#0F172A]';
+
+        const sendBtn = document.getElementById('aiSendQuestionBtn');
+        sendBtn.className = 'px-3 rounded-[8px] font-bold text-xs cursor-pointer shrink-0 bg-[#0067C0] hover:bg-[#00529B] text-white';
       },
-
       onDropQuestion(ev) {
         ev.preventDefault();
         ev.currentTarget.classList.remove('drop-target-active');
-        const id = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
-        if (id) this.selectQuestionToken(id);
+        const step = STEPS[LessonState.stepIndex];
+        if (step && step.tokens && step.tokens.length > 0) this.setDraftQuestion(step.tokens[0]);
       },
-
-      renderDraftBox() {
-        const box = document.getElementById('aiQuestionDraftBox');
-        const sendBtn = document.getElementById('aiSendQuestionBtn');
-        if (LessonState.draftQuestionText) {
-          box.textContent = LessonState.draftQuestionText;
-          box.className = 'flex-1 p-2 rounded-[8px] border-2 text-xs font-bold flex items-center min-h-[42px] bg-[#EBF4FF] border-[#0067C0] text-[#0F172A]';
-          sendBtn.className = 'px-3 rounded-[8px] font-bold text-xs cursor-pointer shrink-0 bg-[#0067C0] hover:bg-[#00529B] text-white';
-        } else {
-          box.textContent = '右の「質問パーツ」を押すとここに入ります';
-          box.className = 'flex-1 p-2 rounded-[8px] border-2 border-dashed text-xs font-semibold cursor-pointer flex items-center min-h-[42px] bg-[#F8FAFC] border-[#94A3B8] text-[#64748B]';
-          sendBtn.className = 'px-3 rounded-[8px] font-bold text-xs cursor-pointer shrink-0 bg-[#CBD5E1] text-[#64748B]';
-        }
+      onTapDraftBox() {
+        const step = STEPS[LessonState.stepIndex];
+        if (step && step.tokens && step.tokens.length > 0 && !LessonState.draftQuestionText) this.setDraftQuestion(step.tokens[0]);
       },
-
-      sendDraftQuestion() {
-        if (!LessonState.draftQuestionId || LessonState.aiBusy) return;
-
-        const qId = LessonState.draftQuestionId;
-        const qText = LessonState.draftQuestionText;
-
-        // ユーザーの吹き出しを追加
-        this.appendBubble('user', qText);
+      clearDraft() {
         LessonState.draftQuestionId = '';
         LessonState.draftQuestionText = '';
-        this.renderDraftBox();
+        const box = document.getElementById('aiQuestionDraftBox');
+        box.textContent = '右の「質問パーツ」を押すとここに入ります';
+        box.className = 'flex-1 p-2 rounded-[8px] border-2 border-dashed text-xs font-semibold cursor-pointer flex items-center min-h-[42px] bg-[#F8FAFC] border-[#94A3B8] text-[#64748B]';
+        const sendBtn = document.getElementById('aiSendQuestionBtn');
+        sendBtn.className = 'px-3 rounded-[8px] font-bold text-xs cursor-pointer shrink-0 bg-[#CBD5E1] text-[#64748B]';
+      },
+      sendDraftQuestion() {
+        if (!LessonState.draftQuestionText || LessonState.aiBusy) return;
+        const qId = LessonState.draftQuestionId;
+        const qText = LessonState.draftQuestionText;
+        this.clearDraft();
 
-        // AI思考中表示（排他制御）
+        const area = document.getElementById('aiChatMessagesArea');
+        area.insertAdjacentHTML('beforeend', `
+          <div class="flex justify-end">
+            <div class="max-w-[85%] bg-[#0067C0] text-white rounded-[10px] rounded-tr-none p-2.5 text-xs font-semibold leading-relaxed">
+              ${qText}
+            </div>
+          </div>
+        `);
+        area.scrollTop = area.scrollHeight;
+
         LessonState.aiBusy = true;
-        const typingEl = document.getElementById('aiTypingIndicator');
-        typingEl.style.display = 'flex';
-        typingEl.setAttribute('aria-hidden', 'false');
+        const typing = document.getElementById('aiTypingIndicator');
+        typing.style.display = 'flex';
+        typing.setAttribute('aria-hidden', 'false');
 
         setTimeout(() => {
           LessonState.aiBusy = false;
-          typingEl.style.display = 'none';
-          typingEl.setAttribute('aria-hidden', 'true');
+          typing.style.display = 'none';
+          typing.setAttribute('aria-hidden', 'true');
 
-          if (qId === 'q_charge') {
-            LessonState.askedCharge = true;
-            this.appendBubble(
-              'ai',
-              '交通系ICカードへのチャージはとても簡単です！<br>' +
-              '① ホーム画面から<strong>「🚃 交通系IC」</strong>アプリを開きます。<br>' +
-              '② 金額を選んで<strong>「入金（チャージ）を確定する」</strong>を押すだけで残高が増えます。'
-            );
-            if (LessonState.stepIndex === 1) advanceStep(2);
-          } else if (qId === 'q_gate') {
-            LessonState.askedGate = true;
-            this.appendBubble(
-              'ai',
-              '<strong>いいえ、アプリを開いたままにする必要はありません！</strong><br>' +
-              '「○ ホーム」ボタンでいつもの画面に戻した状態で、<strong>スマホの上部を改札機の読み取り部にピッと近づけるだけ</strong>で自動反応します。'
-            );
-            if (LessonState.stepIndex === 2) advanceStep(3);
-          }
+          const replyHtml = qId === 'q_charge'
+            ? `<div class="font-bold text-[#0067C0] mb-1">🚃 チャージ（入金）の手順</div>
+               <ol class="list-decimal pl-4 space-y-1">
+                 <li>ホーム画面の<strong>「🚃 交通系IC」</strong>アプリを開きます。</li>
+                 <li>金額（例：<strong>1,000円</strong>）を選んで<strong>「入金を確定」</strong>を押すだけで完了です！</li>
+               </ol>`
+            : `<div class="font-bold text-[#15803D] mb-1">🚉 改札を通るときのポイント</div>
+               <p>アプリを<strong>開いたままにする必要はありません！</strong><br>
+               <strong>「○ ホーム」ボタンでアプリを閉じた状態</strong>のまま、スマホの上部（アンテナ付近）を改札機の読み取り部に軽くかざすだけで「ピピッ」と通れます。</p>`;
+
+          area.insertAdjacentHTML('beforeend', `
+            <div class="flex items-start gap-2">
+              <span class="w-7 h-7 rounded-full bg-[#0067C0] text-white flex items-center justify-center text-xs shrink-0 mt-0.5">🤖</span>
+              <div class="bg-white border border-[#CBD5E1] rounded-[10px] rounded-tl-none p-2.5 text-xs text-[#0F172A] leading-relaxed shadow-2xs">
+                ${replyHtml}
+              </div>
+            </div>
+          `);
+          area.scrollTop = area.scrollHeight;
+
+          if (qId === 'q_charge' && LessonState.stepIndex === 1) advanceStep(2);
+          else if (qId === 'q_gate' && LessonState.stepIndex === 2) advanceStep(3);
         }, 650);
-      },
-
-      appendBubble(sender, htmlContent) {
-        const area = document.getElementById('aiChatMessagesArea');
-        const wrapper = document.createElement('div');
-        if (sender === 'user') {
-          wrapper.className = 'flex justify-end';
-          wrapper.innerHTML = `
-            <div class="max-w-[85%] bg-[#0067C0] text-white rounded-[10px] rounded-tr-none p-2.5 text-xs font-semibold leading-relaxed shadow-2xs">
-              ${htmlContent}
-            </div>
-          `;
-        } else {
-          wrapper.className = 'flex items-start gap-2';
-          wrapper.innerHTML = `
-            <span class="w-7 h-7 rounded-full bg-[#0067C0] text-white flex items-center justify-center text-xs shrink-0 mt-0.5">🤖</span>
-            <div class="bg-white border border-[#0067C0]/40 rounded-[10px] rounded-tl-none p-2.5 text-xs text-[#0F172A] leading-relaxed shadow-2xs">
-              ${htmlContent}
-            </div>
-          `;
-        }
-        area.appendChild(wrapper);
-        area.scrollTop = area.scrollHeight;
       }
     };
 
-    // ---------------------------------------------------------------------
-    // 交通系ICカードコントローラー
-    // ---------------------------------------------------------------------
     const IcCardController = {
-      selectChargeToken(tokenId) {
-        if (tokenId !== 'tok_1000') return;
-        if (LessonState.activeScreen !== 'ic') {
-          ScreenRouter.openApp('ic');
-        }
-        LessonState.chargeAmountSelected = 1000;
-        this.renderSlot();
+      selectChargeAmount(amount) {
+        if (LessonState.activeScreen !== 'ic') ScreenRouter.openApp('ic');
+        LessonState.chargeAmountSelected = amount;
+        const slot = document.getElementById('icChargeSlotBox');
+        slot.textContent = `💴 ${amount.toLocaleString()} 円 を入金する`;
+        slot.className = 'w-full p-3 rounded-[8px] border-2 text-center text-xs font-extrabold cursor-pointer bg-[#DCFCE7] border-[#16A34A] text-[#15803D]';
+        const btn = document.getElementById('icExecuteChargeBtn');
+        btn.className = 'w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer bg-[#16A34A] hover:bg-[#15803D] text-white';
       },
-
-      onTapChargeBox() {
-        if (LessonState.stepIndex === 4 && !LessonState.chargeAmountSelected) {
-          this.selectChargeToken('tok_1000');
-        }
-      },
-
       onDropCharge(ev) {
         ev.preventDefault();
         ev.currentTarget.classList.remove('drop-target-active');
-        const id = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
-        if (id) this.selectChargeToken(id);
+        this.selectChargeAmount(1000);
       },
-
-      renderSlot() {
-        const slot = document.getElementById('icChargeSlotBox');
-        const btn = document.getElementById('icExecuteChargeBtn');
-        if (LessonState.chargeAmountSelected > 0) {
-          slot.textContent = '💴 1,000円 チャージ（セット済み）';
-          slot.className = 'w-full p-3 rounded-[8px] border-2 text-center text-xs font-extrabold bg-[#DCFCE7] border-[#16A34A] text-[#15803D]';
-          btn.className = 'w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer bg-[#16A34A] hover:bg-[#15803D] text-white';
-        } else {
-          slot.textContent = 'ここに「💴 1,000円チャージ」パーツを置く';
-          slot.className = 'w-full p-3 rounded-[8px] border-2 border-dashed text-center text-xs font-bold cursor-pointer bg-[#F8FAFC] border-[#94A3B8] text-[#64748B]';
-          btn.className = 'w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer bg-[#CBD5E1] text-[#64748B]';
-        }
+      onTapChargeBox() {
+        if (!LessonState.chargeAmountSelected && LessonState.stepIndex === 4) this.selectChargeAmount(1000);
       },
-
       requestChargeConfirm() {
-        if (LessonState.chargeAmountSelected <= 0 || LessonState.chargedDone) return;
-        ConfirmDialog.open(
-          '入金（チャージ）の確認',
-          '交通系ICカードに 1,000円 をチャージしますか？',
-          () => {
-            LessonState.icBalance += LessonState.chargeAmountSelected;
-            LessonState.chargedDone = true;
-            document.getElementById('icBalanceAmount').textContent = `${LessonState.icBalance.toLocaleString()} 円`;
-            document.getElementById('icExecuteChargeBtn').textContent = '✓ 1,000円の入金が完了しました';
-            if (LessonState.stepIndex === 4) advanceStep(5);
-          }
-        );
+        if (!LessonState.chargeAmountSelected || LessonState.chargedDone) return;
+        ConfirmDialog.open('入金（チャージ）の確認', `交通系ICカードに ${LessonState.chargeAmountSelected.toLocaleString()} 円を入金しますか？`, () => {
+          LessonState.icBalance += LessonState.chargeAmountSelected;
+          LessonState.chargedDone = true;
+          document.getElementById('icBalanceAmount').textContent = `${LessonState.icBalance.toLocaleString()} 円`;
+          const btn = document.getElementById('icExecuteChargeBtn');
+          btn.textContent = '✓ 入金完了！「○ ホーム」で閉じて改札へ';
+          btn.className = 'w-full py-3 rounded-[8px] font-bold text-xs bg-[#0067C0] text-white';
+          if (LessonState.stepIndex === 4) advanceStep(5);
+          LayerMap.render();
+        });
       }
     };
 
-    // ---------------------------------------------------------------------
-    // 自動改札機センサーコントローラー
-    // ---------------------------------------------------------------------
     const TouchGateController = {
       tapReader() {
         if (!LessonState.chargedDone) {
-          ScreenRouter.showHomeToast('まだチャージが完了していません。先に手順を進めましょう！');
+          ConfirmDialog.open('残高不足のお知らせ', '現在の残高は 120 円です。先に「🤖 AI相談室」でチャージ方法を聞き、1,000円チャージしてから改札にかざしましょう。', () => {});
           return;
         }
-        // AIの教え通り「ホーム画面へ戻ってアプリを閉じた状態」でタッチさせる
         if (LessonState.activeScreen !== 'home') {
-          ScreenRouter.showHomeToast('AIの教えを思い出しましょう！まず「○ ホーム」でアプリを閉じてから改札にかざします。');
+          ConfirmDialog.open('AIのアドバイスを思い出そう', '今はアプリ画面が開いたままです。AIが教えてくれた通り、先に下の「○ ホーム」ボタンで画面を閉じてから改札にかざしてみましょう！', () => {
+            ScreenRouter.pressHome();
+          });
           return;
         }
-
         LessonState.completed = true;
         SmartNaviCommon.markLessonCompleted(LESSON_SLUG);
         ScreenRouter.navigate('gateResult', 'zoom');
@@ -993,62 +716,41 @@
       }
     };
 
-    // ---------------------------------------------------------------------
-    // 立体階層マップ描画
-    // ---------------------------------------------------------------------
     const LayerMap = {
       render() {
         const s = LessonState.activeScreen;
         const badge = document.getElementById('layerStatusSummaryBadge');
         const exp = document.getElementById('layerExplanationText');
-
-        const cards = {
-          ai: document.getElementById('layerCardAi'),
-          ic: document.getElementById('layerCardIc'),
-          gate: document.getElementById('layerCardGate')
-        };
-        const pills = {
-          ai: document.getElementById('layerPillAi'),
-          ic: document.getElementById('layerPillIc'),
-          gate: document.getElementById('layerPillGate')
-        };
-
-        Object.values(cards).forEach(c => {
-          c.style.backgroundColor = 'var(--bg-card-sub)';
-          c.style.borderColor = 'var(--border-subtle)';
-        });
-        Object.values(pills).forEach(p => { p.style.display = 'none'; });
+        const cAi = document.getElementById('layerCardAi');
+        const cIc = document.getElementById('layerCardIc');
+        const cGate = document.getElementById('layerCardGate');
+        const pAi = document.getElementById('layerPillAi');
+        const pIc = document.getElementById('layerPillIc');
+        const pGate = document.getElementById('layerPillGate');
+        [cAi, cIc, cGate].forEach(c => { c.style.backgroundColor = 'var(--bg-card-sub)'; c.style.borderColor = 'var(--border-subtle)'; });
+        [pAi, pIc, pGate].forEach(p => { p.style.display = 'none'; });
 
         if (s === 'ai') {
           badge.textContent = '現在地：🤖 AI相談室';
-          exp.textContent = 'AIにわからない操作を質問しています。答えがわかったら「○ ホーム」を押して実際のアプリへ移動します。';
-          cards.ai.style.backgroundColor = 'var(--accent-tint)';
-          cards.ai.style.borderColor = 'var(--accent-primary)';
-          pills.ai.style.display = 'block';
+          exp.textContent = 'AI相談室で手順を質問しています。わからないことはそのままAIに聞き、答えがわかったら「○ ホーム」でアプリを切り替えます。';
+          cAi.style.backgroundColor = 'var(--accent-tint)'; cAi.style.borderColor = 'var(--accent-primary)'; pAi.style.display = 'block';
         } else if (s === 'ic') {
           badge.textContent = '現在地：🚃 交通系ICアプリ';
-          exp.textContent = 'AIのアドバイスの通り、交通系ICアプリで入金（チャージ）操作を行っています。チャージ後は「○ ホーム」で画面を閉じます。';
-          cards.ic.style.backgroundColor = 'var(--accent-tint)';
-          cards.ic.style.borderColor = 'var(--accent-primary)';
-          pills.ic.style.display = 'block';
+          exp.textContent = '交通系ICアプリで金額を入金しています。入金が終わったら、AIの教え通り「○ ホーム」でアプリを閉じて改札へ進みます。';
+          cIc.style.backgroundColor = 'var(--accent-tint)'; cIc.style.borderColor = 'var(--accent-primary)'; pIc.style.display = 'block';
         } else {
-          badge.textContent = LessonState.completed ? '達成：🚉 改札通過完了' : '現在地：🏠 ホーム画面';
+          badge.textContent = LessonState.completed ? '完了：🚉 改札通過成功！' : '現在地：🏠 ホーム画面';
           exp.textContent = LessonState.chargedDone
-            ? 'チャージ完了後、ホーム画面に戻っています。アプリを開いていなくても、スマホ上部を改札にかざすだけで反応します！'
-            : 'スマートフォンの玄関（ホーム画面）です。まずは「🤖 AI相談室」を開いて使い方を聞いてみましょう。';
-          cards.gate.style.backgroundColor = 'var(--accent-tint)';
-          cards.gate.style.borderColor = 'var(--accent-primary)';
-          pills.gate.style.display = 'block';
+            ? 'アプリを閉じてホーム画面に戻りました！この状態で上部の「📡 改札かざし部」を押すと改札を通過できます。'
+            : 'ホーム画面です。まず「🤖 AI相談室」を開いてやり方を質問してみましょう。';
+          cGate.style.backgroundColor = 'var(--accent-tint)'; cGate.style.borderColor = 'var(--accent-primary)'; pGate.style.display = 'block';
         }
       }
     };
 
-    // ---------------------------------------------------------------------
-    // レッスン進行・共通UI更新
-    // ---------------------------------------------------------------------
-    function advanceStep(nextIdx) {
-      if (nextIdx > LessonState.stepIndex && nextIdx < STEPS.length) {
-        LessonState.stepIndex = nextIdx;
+    function advanceStep(idx) {
+      if (idx > LessonState.stepIndex && idx < STEPS.length) {
+        LessonState.stepIndex = idx;
         renderStepUI();
       }
     }
@@ -1056,56 +758,42 @@
     function renderStepUI() {
       const total = STEPS.length;
       const step = STEPS[LessonState.stepIndex] || STEPS[total - 1];
-      const counterEl = document.getElementById('lessonStepCounter');
-
+      const counter = document.getElementById('lessonStepCounter');
       if (LessonState.completed) {
-        counterEl.textContent = '🎉 全ステップ達成！';
-        counterEl.style.backgroundColor = 'var(--success-fg)';
-        counterEl.style.color = '#FFFFFF';
-        document.getElementById('stepInstructionTitle').textContent = 'おめでとうございます！AIに聞いて解決する流れをマスターしました';
-        document.getElementById('stepInstructionDesc').textContent = 'わからない操作があっても、AIに質問すれば手順をわかりやすく教えてくれます。「レッスン一覧」から他の練習にも進めます。';
+        counter.textContent = '🎉 全ステップ達成！';
+        counter.style.backgroundColor = 'var(--success-fg)'; counter.style.color = '#FFFFFF';
+        document.getElementById('stepInstructionTitle').textContent = 'おめでとうございます！AI相談室と交通系ICの使い方を体験しました';
+        document.getElementById('stepInstructionDesc').textContent = '「レッスン一覧」から他のテーマもぜひ試してみてください。';
         SmartNaviCommon.renderHintPanel(false, '');
-        SmartNaviCommon.renderTokenTray('tokenTrayContainer', [], null, 'すべての操作が完了しました！');
+        SmartNaviCommon.renderTokenTray('tokenTrayContainer', [], null);
       } else {
-        counterEl.textContent = `ステップ ${LessonState.stepIndex + 1} / ${total}`;
-        counterEl.style.backgroundColor = 'var(--accent-primary)';
-        counterEl.style.color = 'var(--accent-text)';
+        counter.textContent = `ステップ ${LessonState.stepIndex + 1} / ${total}`;
+        counter.style.backgroundColor = 'var(--accent-primary)'; counter.style.color = 'var(--accent-text)';
         document.getElementById('stepInstructionTitle').textContent = step.title;
         document.getElementById('stepInstructionDesc').textContent = step.desc;
         SmartNaviCommon.renderHintPanel(LessonState.hintVisible, step.hint);
-
-        SmartNaviCommon.renderTokenTray('tokenTrayContainer', step.tokens, (tokenId) => {
-          if (tokenId === 'q_charge' || tokenId === 'q_gate') {
-            AiChatController.selectQuestionToken(tokenId);
-          } else if (tokenId === 'tok_1000') {
-            IcCardController.selectChargeToken(tokenId);
-          }
+        SmartNaviCommon.renderTokenTray('tokenTrayContainer', step.tokens, (tokId) => {
+          const tok = step.tokens.find(t => t.id === tokId);
+          if (!tok) return;
+          if (tok.amount) IcCardController.selectChargeAmount(tok.amount);
+          else AiChatController.setDraftQuestion(tok);
         });
       }
-
-      const dotsEl = document.getElementById('stepProgressDots');
-      dotsEl.innerHTML = STEPS.map((_, idx) => {
+      document.getElementById('stepProgressDots').innerHTML = STEPS.map((_, idx) => {
         const done = LessonState.completed || idx < LessonState.stepIndex;
         const curr = !LessonState.completed && idx === LessonState.stepIndex;
-        return `
-          <div class="h-2 flex-1 rounded-full transition"
-            style="background-color: ${
-              done ? 'var(--success-border)' : curr ? 'var(--accent-primary)' : 'var(--border-subtle)'
-            };"></div>
-        `;
+        return `<div class="h-2 flex-1 rounded-full" style="background-color: ${done ? 'var(--success-border)' : curr ? 'var(--accent-primary)' : 'var(--border-subtle)'};"></div>`;
       }).join('');
     }
 
-    function toggleHint(forceVal = null) {
-      LessonState.hintVisible = forceVal !== null ? forceVal : !LessonState.hintVisible;
-      const step = STEPS[LessonState.stepIndex];
-      SmartNaviCommon.renderHintPanel(LessonState.hintVisible, step ? step.hint : '');
+    function toggleHint(force = null) {
+      LessonState.hintVisible = force !== null ? force : !LessonState.hintVisible;
+      renderStepUI();
     }
 
     function recoverToSafePoint() {
       const step = STEPS[LessonState.stepIndex];
-      const target = (step && step.safeScreen) ? step.safeScreen : 'home';
-      ScreenRouter.navigate(target, 'zoom');
+      ScreenRouter.navigate((step && step.safeScreen) ? step.safeScreen : 'home', 'zoom');
     }
 
     function onPrefUpdated() {
@@ -1119,28 +807,20 @@
       LessonState.runningApps = [];
       LessonState.draftQuestionId = '';
       LessonState.draftQuestionText = '';
-      LessonState.askedCharge = false;
-      LessonState.askedGate = false;
       LessonState.aiBusy = false;
       LessonState.icBalance = 120;
       LessonState.chargeAmountSelected = 0;
       LessonState.chargedDone = false;
 
-      // チャットログ初期化
-      const area = document.getElementById('aiChatMessagesArea');
-      area.innerHTML = `
-        <div class="flex items-start gap-2">
-          <span class="w-7 h-7 rounded-full bg-[#0067C0] text-white flex items-center justify-center text-xs shrink-0 mt-0.5">🤖</span>
-          <div class="bg-white border border-[#CBD5E1] rounded-[10px] rounded-tl-none p-2.5 text-xs text-[#0F172A] leading-relaxed shadow-2xs">
-            こんにちは！スマートフォンの使い方でわからないことがあれば、何でも聞いてください。<br>
-            <span class="text-[#475569] text-[11px] mt-1 block">※ 右の「質問パーツ」を押すと、文字を打たずに質問できます。</span>
-          </div>
-        </div>
-      `;
       document.getElementById('icBalanceAmount').textContent = '120 円';
-      document.getElementById('icExecuteChargeBtn').textContent = '入金（チャージ）を確定する';
-      AiChatController.renderDraftBox();
-      IcCardController.renderSlot();
+      const slot = document.getElementById('icChargeSlotBox');
+      slot.textContent = 'ここに「💴 1,000円チャージ」パーツを置く';
+      slot.className = 'w-full p-3 rounded-[8px] border-2 border-dashed text-center text-xs font-bold cursor-pointer bg-[#F8FAFC] border-[#94A3B8] text-[#64748B]';
+      const icBtn = document.getElementById('icExecuteChargeBtn');
+      icBtn.textContent = '入金（チャージ）を確定する';
+      icBtn.className = 'w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer bg-[#CBD5E1] text-[#64748B]';
+
+      AiChatController.initChat();
       renderStepUI();
       ScreenRouter.navigate('home', 'zoom');
     }
