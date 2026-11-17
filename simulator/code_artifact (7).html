@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>スクリーンショットシミュレーター｜smart-navi</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* =====================================================================
+       1. デザイントークン（ライトテーマ / ダークテーマ）
+       ===================================================================== */
+    :root,
+    [data-theme="light"] {
+      --bg-canvas: #F3F4F6;
+      --bg-header: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --bg-card-sub: #F8FAFC;
+      --border-subtle: #E2E8F0;
+      --border-strong: #CBD5E1;
+
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #64748B;
+
+      --accent-primary: #0067C0;
+      --accent-hover: #00529B;
+      --accent-text: #FFFFFF;
+      --accent-tint: #EBF4FF;
+
+      --photo-primary: #D97706;
+      --photo-hover: #B45309;
+      --photo-tint: #FEF3C7;
+
+      --waiting-bg: #FEF9C3;
+      --waiting-border: #CA8A04;
+      --waiting-fg: #854D0E;
+
+      --success-bg: #DCFCE7;
+      --success-border: #16A34A;
+      --success-fg: #15803D;
+
+      --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.06);
+      --shadow-popover: 0 8px 20px rgba(15, 23, 42, 0.14);
+    }
+
+    [data-theme="dark"] {
+      --bg-canvas: #18181B;
+      --bg-header: #222226;
+      --bg-card: #27272A;
+      --bg-card-sub: #1F1F23;
+      --border-subtle: #3F3F46;
+      --border-strong: #52525B;
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+
+      --accent-primary: #4CC2FF;
+      --accent-hover: #38B2F0;
+      --accent-text: #090D16;
+      --accent-tint: #172E42;
+
+      --photo-primary: #F59E0B;
+      --photo-hover: #D97706;
+      --photo-tint: #3A2A10;
+
+      --waiting-bg: #3A3012;
+      --waiting-border: #EAB308;
+      --waiting-fg: #FEF08A;
+
+      --success-bg: #143320;
+      --success-border: #22C55E;
+      --success-fg: #86EFAC;
+
+      --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.35);
+      --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.55);
+    }
+
+    /* =====================================================================
+       2. ベーススタイル＆アクセシビリティ（文字サイズ切替・トグル）
+       ===================================================================== */
+    html {
+      font-size: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html.font-large {
+      font-size: 18.5px;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      margin: 0;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .app-header {
+      background-color: var(--bg-header);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .app-footer {
+      background-color: var(--bg-header);
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .ui-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      box-shadow: var(--shadow-card);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .ui-card-sub {
+      background-color: var(--bg-card-sub);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+    }
+
+    .ui-btn {
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-bottom: 2px solid var(--border-strong);
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.08s ease;
+    }
+    .ui-btn:hover {
+      background-color: var(--accent-tint);
+      border-color: var(--accent-primary);
+    }
+    .ui-btn:active {
+      transform: translateY(1px);
+    }
+
+    .ui-toggle {
+      position: relative;
+      width: 44px;
+      height: 22px;
+      border-radius: 9999px;
+      border: 1.5px solid var(--text-secondary);
+      background-color: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.18s ease, border-color 0.18s ease;
+    }
+    .ui-toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 13px;
+      height: 13px;
+      border-radius: 9999px;
+      background-color: var(--text-secondary);
+      transition: transform 0.18s ease, background-color 0.18s ease;
+    }
+    .ui-toggle[aria-checked="true"] {
+      background-color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+    .ui-toggle[aria-checked="true"]::after {
+      background-color: var(--accent-text);
+      transform: translateX(22px);
+    }
+
+    .ui-pill {
+      width: 4px;
+      min-height: 22px;
+      border-radius: 9999px;
+      background-color: var(--photo-primary);
+      flex-shrink: 0;
+    }
+
+    /* 物理側面ボタンのホールド強調 */
+    .hw-btn-held {
+      background-color: #16A34A !important;
+      border-color: #86EFAC !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.38);
+    }
+
+    /* =====================================================================
+       3. バーチャルスマートフォン内 排他的画面切り替え（100%不透明）
+       ===================================================================== */
+    .phone-screen-panel {
+      display: none; /* 非アクティブ時は必ず display: none で完全非表示 */
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    @keyframes screenEnterZoom {
+      from { transform: scale(0.96); opacity: 0.3; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes screenEnterSlideUp {
+      from { transform: translateY(22px); opacity: 0.3; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .anim-zoom {
+      animation: screenEnterZoom 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .anim-slide-up {
+      animation: screenEnterSlideUp 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .clean-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .clean-scroll::-webkit-scrollbar-thumb {
+      background: rgba(120, 120, 120, 0.4);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- =====================================================================
+       上部ヘッダー（1テーマ特化：スクリーンショットシミュレーター）
+       ===================================================================== -->
+  <header class="app-header sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- タイトル＆テーマ表示 -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-[8px] flex items-center justify-center shrink-0"
+          style="background-color: var(--photo-primary); color: #FFFFFF;">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2.5"></rect>
+            <circle cx="8.5" cy="10.5" r="1.5"></circle>
+            <path d="M21 15l-5-5L5 19" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold"
+              style="background-color: var(--photo-tint); color: var(--photo-primary);">
+              実践レッスン・便利機能編
+            </span>
+            <h1 class="text-base sm:text-lg font-bold leading-tight" style="color: var(--text-primary);">
+              スクリーンショットシミュレーター
+            </h1>
+          </div>
+          <p class="text-xs mt-0.5" style="color: var(--text-secondary);">
+            予約番号などの大切な画面を写真として撮影し、「写真アルバム」からいつでも見返す操作を練習できます
+          </p>
+        </div>
+      </div>
+
+      <!-- 文字サイズ・配色・やり直しコントロール -->
+      <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div class="flex items-center gap-2">
+          <span id="fontSizeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
+            文字サイズ：標準
+          </span>
+          <button type="button" id="fontToggleBtn" role="switch" aria-checked="false" onclick="toggleFontSize()"
+            class="ui-toggle" aria-label="文字サイズを標準と大きめで切り替える"></button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="themeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
+            配色：ライト
+          </span>
+          <button type="button" id="themeToggleBtn" role="switch" aria-checked="false" onclick="toggleTheme()"
+            class="ui-toggle" aria-label="配色をライトとダークで切り替える"></button>
+        </div>
+
+        <button type="button" onclick="resetCurrentLesson()"
+          class="ui-btn px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5">
+          <span>↺ 最初からやり直す</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       メイン2カラム領域
+       ===================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+    <!-- ===================================================================
+         左カラム：バーチャルスマートフォン ＋ 右側面物理ボタン（5カラム）
+         =================================================================== -->
+    <section class="lg:col-span-5 flex flex-col items-center">
+      <div class="ui-card w-full max-w-[440px] p-4 flex flex-col items-center">
+
+        <div class="w-full flex items-center justify-between gap-2 mb-2">
+          <span class="text-xs font-bold" style="color: var(--text-secondary);">
+            📱 練習用スマートフォン
+          </span>
+          <button type="button" onclick="recoverToSafePoint()"
+            class="ui-btn px-2.5 py-1 text-xs flex items-center gap-1"
+            title="操作がわからなくなったときに現在のステップの画面へ戻します">
+            <span>🧭 迷子になったら現在ステップへ戻る</span>
+          </button>
+        </div>
+
+        <!-- 物理ボタン同時押しステータスガイドバー -->
+        <div id="hwHoldGuideBadge"
+          class="w-full max-w-[360px] mb-2.5 px-3 py-1.5 rounded-[8px] border text-xs font-bold text-center transition"
+          style="background-color: var(--bg-card-sub); border-color: var(--border-subtle); color: var(--text-secondary);">
+          右側面：「⏻ 電源ボタン」＋「🔉 音量下ボタン」の2つ同時押しで撮影
+        </div>
+
+        <!-- スマートフォン実機フレーム ＋ 右側面物理ボタン群 -->
+        <div class="relative flex items-center justify-center w-full">
+          <div class="relative w-full max-w-[330px] h-[630px] bg-[#1E293B] rounded-[36px] p-2.5 shadow-xl border-[3px] border-[#334155] flex flex-col shrink-0">
+            <!-- 受話口スピーカー -->
+            <div class="h-4 flex items-center justify-center gap-2 mb-1">
+              <div class="w-12 h-1 bg-[#475569] rounded-full"></div>
+              <div class="w-2 h-2 bg-[#334155] border border-[#64748B] rounded-full"></div>
+            </div>
+
+            <!-- ディスプレイ画面枠 -->
+            <div class="relative flex-1 w-full rounded-[24px] overflow-hidden flex flex-col justify-between bg-[#F1F5F9] text-[#0F172A] select-none">
+
+              <!-- 最上部ステータスバー ＋ スクリーンショット保存状態インジケーター -->
+              <div class="relative z-20 px-3 py-1.5 bg-[#0F172A] text-white flex items-center justify-between text-xs font-semibold shrink-0">
+                <div class="flex items-center gap-1.5">
+                  <span>10:30</span>
+                  <span class="px-1.5 py-0.2 rounded bg-[#1E293B] text-[#CBD5E1] text-[10px]">接続良好</span>
+                </div>
+                <!-- 撮影ステータスバッジ -->
+                <div id="phoneStatusPhotoBadge"
+                  class="px-2 py-0.5 rounded-full bg-[#1E293B] text-[#94A3B8] text-[10px] font-bold flex items-center gap-1 max-w-[185px] truncate">
+                  <span>🖼️ 保存画像：0枚</span>
+                </div>
+              </div>
+
+              <!-- =============================================================
+                   排他的スクリーンコンテナ（常に1つの画面だけが display: flex）
+                   ============================================================= -->
+              <div class="relative flex-1 w-full overflow-hidden">
+
+                <!-- -----------------------------------------------------------
+                     画面1：ホーム画面（screenHome）
+                     ----------------------------------------------------------- -->
+                <div id="screenHome" aria-hidden="true"
+                  class="phone-screen-panel clean-scroll p-3.5 justify-between"
+                  style="display: none; background-color: #DCE9F8;">
+                  
+                  <!-- 時計＆現在の練習ガイドカード -->
+                  <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1] shadow-2xs">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <div class="text-2xl font-bold text-[#0F172A]">10:30</div>
+                        <div class="text-xs font-semibold text-[#475569]">11月17日（火）・晴れ</div>
+                      </div>
+                      <span class="px-2.5 py-1 rounded-full bg-[#EBF4FF] text-[#0067C0] text-xs font-bold">
+                        ホーム画面（玄関）
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- 主要アプリアイコングリッド -->
+                  <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1]">
+                    <div class="text-xs font-bold text-[#475569] mb-2.5 text-center">
+                      開きたいアプリを押してください
+                    </div>
+                    <div class="grid grid-cols-3 gap-2.5">
+                      <!-- 会員サイト（ブラウザ） -->
+                      <button type="button" onclick="ScreenRouter.openApp('browser')"
+                        class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] border border-transparent hover:border-[#0067C0]/30 cursor-pointer">
+                        <span id="badgeHomeBrowser" aria-hidden="true" style="display: none;"
+                          class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-[#CA8A04] text-white text-[9px] font-bold">待機中</span>
+                        <span class="w-11 h-11 rounded-[10px] bg-[#0067C0] text-white flex items-center justify-center text-xl shadow-2xs">🌐</span>
+                        <span class="text-xs font-bold text-[#0F172A]">会員サイト</span>
+                      </button>
+
+                      <!-- 写真アルバムアプリ -->
+                      <button type="button" onclick="ScreenRouter.openApp('photos')"
+                        class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#FEF3C7] border border-transparent hover:border-[#D97706]/40 cursor-pointer">
+                        <span id="badgeHomePhotos" aria-hidden="true" style="display: none;"
+                          class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-[#DC2626] text-white text-[9px] font-bold">新着1</span>
+                        <span class="w-11 h-11 rounded-[10px] bg-[#D97706] text-white flex items-center justify-center text-xl shadow-2xs">🖼️</span>
+                        <span class="text-xs font-bold text-[#0F172A]">写真アルバム</span>
+                      </button>
+
+                      <!-- メール -->
+                      <button type="button" onclick="ScreenRouter.showInfoToast('今回の練習では「会員サイト」と「写真アルバム」を使います。')"
+                        class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
+                        <span class="w-11 h-11 rounded-[10px] bg-[#0284C7] text-white flex items-center justify-center text-xl">✉️</span>
+                        <span class="text-xs font-bold text-[#0F172A]">メール</span>
+                      </button>
+
+                      <!-- 電話 -->
+                      <button type="button" onclick="ScreenRouter.showInfoToast('今回の練習では「会員サイト」と「写真アルバム」を使います。')"
+                        class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
+                        <span class="w-11 h-11 rounded-[10px] bg-[#15803D] text-white flex items-center justify-center text-xl">📞</span>
+                        <span class="text-xs font-bold text-[#0F172A]">電話</span>
+                      </button>
+
+                      <!-- カメラ -->
+                      <button type="button" onclick="ScreenRouter.showInfoToast('カメラではなく、撮影した画面が自動で入る「写真アルバム」を開きましょう。')"
+                        class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
+                        <span class="w-11 h-11 rounded-[10px] bg-[#334155] text-white flex items-center justify-center text-xl">📷</span>
+                        <span class="text-xs font-bold text-[#0F172A]">カメラ</span>
+                      </button>
+
+                      <!-- アプリ一覧を開く -->
+                      <button type="button" onclick="ScreenRouter.navigate('drawer')"
+                        class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
+                        <span class="w-11 h-11 rounded-[10px] bg-[#64748B] text-white flex items-center justify-center text-xl">🗂️</span>
+                        <span class="text-xs font-bold text-[#0F172A]">全アプリ</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- ホーム画面内インフォメッセージ（排他制御） -->
+                  <div id="homeToastBox" aria-hidden="true" style="display: none;"
+                    class="bg-[#0F172A] text-white rounded-[8px] p-2.5 text-xs font-semibold text-center border border-[#F59E0B]">
+                  </div>
+
+                  <!-- 下部案内バー -->
+                  <div class="bg-white/95 rounded-[8px] p-2.5 border border-[#CBD5E1] text-center">
+                    <button type="button" onclick="ScreenRouter.navigate('drawer')"
+                      class="text-xs font-bold text-[#0067C0] hover:underline cursor-pointer">
+                      ↑ ここを押すと「アプリ一覧の引き出し」が開きます
+                    </button>
+                  </div>
+                </div>
+
+                <!-- -----------------------------------------------------------
+                     画面2：アプリ一覧ドロワー（screenDrawer）
+                     ----------------------------------------------------------- -->
+                <div id="screenDrawer" aria-hidden="true"
+                  class="phone-screen-panel clean-scroll p-3.5 justify-between"
+                  style="display: none; background-color: #F8FAFC;">
+                  <div>
+                    <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#E2E8F0]">
+                      <h2 class="font-bold text-sm text-[#0F172A]">🗂️ アプリ一覧（下の引き出し）</h2>
+                      <button type="button" onclick="ScreenRouter.navigate('home')"
+                        class="px-2 py-1 rounded bg-[#E2E8F0] text-xs font-bold text-[#0F172A] cursor-pointer">
+                        閉じる
+                      </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                      <button type="button" onclick="ScreenRouter.openApp('browser')"
+                        class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
+                        <span class="w-9 h-9 rounded-[8px] bg-[#0067C0] text-white flex items-center justify-center text-lg shrink-0">🌐</span>
+                        <div>
+                          <div class="font-bold text-xs text-[#0F172A]">会員サイト</div>
+                          <div class="text-[10px] text-[#475569]">予約控え画面</div>
+                        </div>
+                      </button>
+
+                      <button type="button" onclick="ScreenRouter.openApp('photos')"
+                        class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#D97706] text-left cursor-pointer">
+                        <span class="w-9 h-9 rounded-[8px] bg-[#D97706] text-white flex items-center justify-center text-lg shrink-0">🖼️</span>
+                        <div>
+                          <div class="font-bold text-xs text-[#0F172A]">写真アルバム</div>
+                          <div class="text-[10px] text-[#475569]">保存された画像</div>
+                        </div>
+                      </button>
+
+                      <button type="button" onclick="ScreenRouter.navigate('recents')"
+                        class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
+                        <span class="w-9 h-9 rounded-[8px] bg-[#475569] text-white flex items-center justify-center text-lg shrink-0">□</span>
+                        <div>
+                          <div class="font-bold text-xs text-[#0F172A]">履歴一覧</div>
+                          <div class="text-[10px] text-[#475569]">起動中アプリ</div>
+                        </div>
+                      </button>
+
+                      <button type="button" onclick="ScreenRouter.navigate('home')"
+                        class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
+                        <span class="w-9 h-9 rounded-[8px] bg-[#64748B] text-white flex items-center justify-center text-lg shrink-0">🏠</span>
+                        <div>
+                          <div class="font-bold text-xs text-[#0F172A]">ホーム</div>
+                          <div class="text-[10px] text-[#475569]">最初の玄関</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button type="button" onclick="ScreenRouter.navigate('home')"
+                    class="w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs cursor-pointer">
+                    ホーム画面へ戻る
+                  </button>
+                </div>
+
+                <!-- -----------------------------------------------------------
+                     画面3：会員サイト画面（screenBrowser：予約控え画面）
+                     ----------------------------------------------------------- -->
+                <div id="screenBrowser" aria-hidden="true"
+                  class="phone-screen-panel clean-scroll"
+                  style="display: none; background-color: #FFFFFF;">
+                  <!-- ブラウザ上部バー -->
+                  <div class="px-3 py-2 bg-[#0067C0] text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-sm">🌐</span>
+                      <span class="font-bold text-xs">暮らしの会員サイト（予約控え）</span>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">予約完了</span>
+                  </div>
+
+                  <!-- 会員サイト本文 -->
+                  <div id="browserContentArea" class="flex-1 p-3.5 flex flex-col justify-between text-[#0F172A]">
+                    <!-- JSで描画 -->
+                  </div>
+                </div>
+
+                <!-- -----------------------------------------------------------
+                     画面4：写真アルバムアプリ画面（screenPhotos）
+                     ----------------------------------------------------------- -->
+                <div id="screenPhotos" aria-hidden="true"
+                  class="phone-screen-panel clean-scroll"
+                  style="display: none; background-color: #FFFFFF;">
+                  <!-- 写真アルバム上部バー -->
+                  <div class="px-3 py-2 bg-[#D97706] text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-sm">🖼️</span>
+                      <span class="font-bold text-xs">写真アルバム</span>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">スクリーンショット保存先</span>
+                  </div>
+
+                  <!-- 写真アルバム本文 -->
+                  <div id="photosContentArea" class="flex-1 p-3.5 flex flex-col justify-between text-[#0F172A]">
+                    <!-- PhotosAppController が描画 -->
+                  </div>
+                </div>
+
+                <!-- -----------------------------------------------------------
+                     画面5：アプリ切り替え履歴画面（screenRecents）
+                     ----------------------------------------------------------- -->
+                <div id="screenRecents" aria-hidden="true"
+                  class="phone-screen-panel clean-scroll p-3.5 justify-between text-white"
+                  style="display: none; background-color: #1E293B;">
+                  <div>
+                    <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-white/15">
+                      <h2 class="font-bold text-sm">□ 開いているアプリの履歴</h2>
+                      <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/15">切り替え画面</span>
+                    </div>
+                    <p class="text-xs text-[#CBD5E1] mb-3 leading-relaxed">
+                      開いているアプリの一覧です。戻りたい画面のカードを押してください。
+                    </p>
+
+                    <div id="recentsCardsContainer" class="space-y-2.5">
+                      <!-- JSで描画 -->
+                    </div>
+                  </div>
+
+                  <button type="button" onclick="ScreenRouter.navigate('home')"
+                    class="mt-3 w-full py-2.5 rounded-[8px] bg-white/15 hover:bg-white/25 text-white font-bold text-xs cursor-pointer">
+                    ○ ホーム画面へ戻る
+                  </button>
+                </div>
+
+                <!-- -----------------------------------------------------------
+                     画面6：シャッター撮影フラッシュ演出（screenShutterFlash）
+                     ※ 100%不透明・排他的表示（0.25秒後に即座に display: none へ復帰）
+                     ----------------------------------------------------------- -->
+                <div id="screenShutterFlash" aria-hidden="true"
+                  class="phone-screen-panel p-4 justify-center items-center text-center"
+                  style="display: none; background-color: #FFFFFF; color: #0F172A;">
+                  <div class="w-16 h-16 rounded-full bg-[#FEF3C7] text-[#D97706] flex items-center justify-center text-3xl mb-2">
+                    📸
+                  </div>
+                  <div class="font-extrabold text-base text-[#0F172A]">カシャッ！撮影しました</div>
+                  <div class="text-xs text-[#475569] mt-1">写真アルバムに保存中...</div>
+                </div>
+
+              </div>
+
+              <!-- =============================================================
+                   最下部 3ボタンナビゲーションバー（戻る◁・ホーム○・履歴□）
+                   ============================================================= -->
+              <div class="relative z-20 bg-[#0F172A] text-white px-2 py-1.5 flex items-center justify-around border-t border-white/15 shrink-0">
+                <button type="button" onclick="ScreenRouter.pressBack()"
+                  class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 active:bg-white/25 flex flex-col items-center justify-center cursor-pointer">
+                  <span class="text-sm font-bold leading-none">◁</span>
+                  <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">戻る</span>
+                </button>
+
+                <button type="button" onclick="ScreenRouter.pressHome()"
+                  class="flex-1 py-1 mx-1 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] flex flex-col items-center justify-center cursor-pointer">
+                  <span class="text-sm font-bold leading-none">○</span>
+                  <span class="text-[10px] font-bold mt-1 text-white">ホーム</span>
+                </button>
+
+                <button type="button" onclick="ScreenRouter.pressRecents()"
+                  class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 active:bg-white/25 flex flex-col items-center justify-center cursor-pointer">
+                  <span class="text-sm font-bold leading-none">□</span>
+                  <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">履歴</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 右側面物理ボタン群（電源ボタン＋音量下ボタン：同時押しスクリーンショット用） -->
+          <div class="flex flex-col gap-3 ml-1.5 shrink-0">
+            <button type="button" id="hwPowerBtn" onclick="HardwareButtonEngine.pressButton('power')"
+              class="w-12 py-3.5 px-1 rounded-r-[10px] rounded-l-[4px] bg-[#334155] hover:bg-[#475569] text-white border border-[#64748B] flex flex-col items-center justify-center gap-1 cursor-pointer transition shadow">
+              <span class="text-sm">⏻</span>
+              <span class="text-[10px] font-bold leading-tight text-center">電源<br>ボタン</span>
+            </button>
+
+            <button type="button" id="hwVolDownBtn" onclick="HardwareButtonEngine.pressButton('volDown')"
+              class="w-12 py-3.5 px-1 rounded-r-[10px] rounded-l-[4px] bg-[#334155] hover:bg-[#475569] text-white border border-[#64748B] flex flex-col items-center justify-center gap-1 cursor-pointer transition shadow">
+              <span class="text-sm">🔉</span>
+              <span class="text-[10px] font-bold leading-tight text-center">音量下<br>ボタン</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- スマホ下部補助ボタン -->
+        <button type="button" onclick="ScreenRouter.navigate('drawer')"
+          class="ui-btn w-full mt-3 py-2 px-3 text-xs flex items-center justify-center gap-1.5">
+          <span>↑ 下から引き出す（アプリ一覧を開く）</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         右カラム：ステップ案内・立体階層マップ・撮影ステータス（7カラム）
+         =================================================================== -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- 1. 現在のステップ案内パネル（優しいガイド＋排他ヒント表示） -->
+      <div class="ui-card p-4 sm:p-5 border-l-4" style="border-left-color: var(--photo-primary);">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span id="lessonStepCounter" class="px-2.5 py-0.5 rounded-full text-xs font-bold"
+              style="background-color: var(--photo-primary); color: #FFFFFF;">
+              ステップ 1 / 4
+            </span>
+            <h2 id="lessonTitleDisplay" class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">
+              スクリーンショット（画面の撮影と写真アルバムでの確認）
+            </h2>
+          </div>
+
+          <button type="button" id="toggleStepHintBtn" aria-expanded="false" onclick="toggleStepHint()"
+            class="ui-btn px-3 py-1.5 text-xs flex items-center gap-1">
+            <span>💡 ヒントを見る</span>
+          </button>
+        </div>
+
+        <!-- 現在の操作指示 -->
+        <div class="ui-card-sub p-3.5">
+          <div id="stepInstructionTitle" class="font-bold text-sm sm:text-base mb-1" style="color: var(--photo-primary);">
+            1. 「電源ボタン」と「音量下ボタン」を2つ同時に押して撮影しましょう
+          </div>
+          <p id="stepInstructionDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);">
+            会員サイトの予約控え画面を表示したまま、スマホ右側面の「⏻ 電源ボタン」と「🔉 音量下ボタン」を2つ同時に押してください（片方を押すと2.5秒間ホールド状態になります）。
+          </p>
+        </div>
+
+        <!-- 排他的ヒントパネル（初期・非アクティブ時は display: none & aria-hidden="true"） -->
+        <div id="stepHintPanel" aria-hidden="true" style="display: none;"
+          class="mt-3 p-3.5 rounded-[8px] border"
+          style="background-color: var(--photo-tint); border-color: var(--photo-primary);">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-xs" style="color: var(--photo-primary);">💡 操作のヒント</span>
+            <button type="button" onclick="toggleStepHint(false)"
+              class="text-xs font-bold px-2 py-0.5 rounded cursor-pointer" style="color: var(--text-secondary);">
+              ✕ 閉じる
+            </button>
+          </div>
+          <p id="stepHintText" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);">
+            ヒント内容
+          </p>
+        </div>
+
+        <!-- ステップ進行ドットバー -->
+        <div id="stepProgressDots" class="flex items-center gap-1.5 mt-3">
+          <!-- JSで描画 -->
+        </div>
+      </div>
+
+      <!-- 2. スマホ立体階層マップ（表示画面・側面ボタン撮影・写真アルバムの関係） -->
+      <div class="ui-card p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">
+            🗺️ スマホ立体階層マップ（いま見ている画面と「写真アルバム」の関係）
+          </h2>
+          <span id="layerStatusSummaryBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full"
+            style="background-color: var(--accent-tint); color: var(--accent-primary);">
+            最前面：会員サイト
+          </span>
+        </div>
+
+        <p id="layerExplanationText" class="text-xs sm:text-sm leading-relaxed mb-3" style="color: var(--text-secondary);">
+          紙のメモとペンがなくても、スマホ側面の2つのボタンを同時押しすると、いま画面に映っている内容がそのまま「🖼️ 写真アルバム」に1枚の写真として保存されます。
+        </p>
+
+        <!-- 3層構造ビジュアルカード -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <!-- 層A：撮影対象の画面（会員サイト） -->
+          <div id="layerCardMain" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillMain" class="ui-pill mt-0.5" style="display: none;"></span>
+            <div class="flex-1">
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">撮影したい元の画面</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🌐 会員サイト（控え）</div>
+              <div id="layerSubMain" class="text-[11px] mt-1" style="color: var(--text-secondary);">現在画面に表示中</div>
+            </div>
+          </div>
+
+          <!-- 層B：基準の玄関（ホーム／アプリ一覧） -->
+          <div id="layerCardBase" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillBase" class="ui-pill mt-0.5" style="display: none;"></span>
+            <div class="flex-1">
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">切り替えの玄関</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🏠 ホーム / 🗂️ 一覧</div>
+              <div id="layerSubBase" class="text-[11px] mt-1" style="color: var(--text-secondary);">「○ ホーム」で移動</div>
+            </div>
+          </div>
+
+          <!-- 層C：保存先のアルバム（写真アルバム） -->
+          <div id="layerCardPhotos" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillPhotos" class="ui-pill mt-0.5" style="display: none;"></span>
+            <div class="flex-1">
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">撮影した画像の保存先</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🖼️ 写真アルバム</div>
+              <div id="layerSubPhotos" class="text-[11px] mt-1" style="color: var(--text-secondary);">撮影後に自動で保存</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 物理ボタン同時押しガイド ＆ 保存済み画像モニター -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- 物理ボタン同時押しガイド（7カラム） -->
+        <div class="md:col-span-7 ui-card p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="font-bold text-sm" style="color: var(--text-primary);">
+              📸 スクリーンショット撮影のコツ（側面2ボタン同時押し）
+            </h2>
+          </div>
+          <p class="text-xs leading-relaxed mb-3" style="color: var(--text-secondary);">
+            実際のスマートフォンでも、右側面の<strong>「⏻ 電源ボタン」</strong>と<strong>「🔉 音量下ボタン」</strong>の2つを同時にカチッと押すと画面が撮影できます。この練習機では片方を押すと2.5秒間ホールドされます。
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="HardwareButtonEngine.pressButton('power')"
+              class="ui-btn px-3 py-2 text-xs flex items-center gap-1.5">
+              <span>⏻ 電源ボタンを押す</span>
+            </button>
+            <button type="button" onclick="HardwareButtonEngine.pressButton('volDown')"
+              class="ui-btn px-3 py-2 text-xs flex items-center gap-1.5">
+              <span>🔉 音量下ボタンを押す</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 保存済みスクリーンショットモニター（5カラム） -->
+        <div class="md:col-span-5 ui-card p-4 flex flex-col justify-between">
+          <div>
+            <h2 class="font-bold text-sm mb-1" style="color: var(--text-primary);">
+              🖼️ 保存済み画像ステータス
+            </h2>
+            <p class="text-xs mb-2.5" style="color: var(--text-secondary);">
+              撮影したスクリーンショットの保存状況です。
+            </p>
+          </div>
+
+          <div id="photoMonitorBox" class="p-3 rounded-[8px] border text-left text-xs space-y-1"
+            style="background-color: var(--bg-card-sub); border-color: var(--border-subtle);">
+            <div id="photoMonitorStatus" class="font-bold" style="color: var(--text-muted);">
+              まだ撮影されていません
+            </div>
+            <div id="photoMonitorDetail" style="color: var(--text-secondary);">
+              予約控え画面を表示して撮影しましょう
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- =====================================================================
+       下部フッター（smart-navi コピーライト表記）
+       ===================================================================== -->
+  <footer class="app-footer mt-auto py-4 px-4 sm:px-6 text-center">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm">
+      <span class="font-semibold">実践レッスン：スクリーンショット（画面の撮影と写真アルバムでの確認）</span>
+      <span class="font-bold tracking-wide">&copy; smart-navi</span>
+    </div>
+  </footer>
+
+  <!-- =====================================================================
+       JavaScript：共通アセット・スクリーンショットレッスンエンジン
+       ===================================================================== -->
+  <script>
+    // =====================================================================
+    // A. スクリーンショットレッスン定義データ（SCREENSHOT_LESSON）
+    // =====================================================================
+    const SCREENSHOT_LESSON = {
+      id: 'screenshot',
+      title: 'スクリーンショット（画面の撮影と写真アルバムでの確認）',
+      steps: [
+        {
+          title: '1. 「⏻ 電源ボタン」と「🔉 音量下ボタン」を2つ同時に押して撮影しましょう',
+          desc: '会員サイトの予約控え画面を表示したまま、スマホ右側面の「⏻ 電源ボタン」と「🔉 音量下ボタン」を両方押してください（片方を押すと2.5秒間ホールド状態になります）。',
+          hint: 'スマホ枠のすぐ右横にある「⏻ 電源ボタン」を1回押し、2.5秒以内にもう1つの「🔉 音量下ボタン」を押すと画面がカシャッと撮影されます。',
+          safeScreen: 'browser'
+        },
+        {
+          title: '2. 「○ ホーム」ボタンを押してホーム画面へ戻りましょう',
+          desc: '予約控えの撮影ができました！スマホ一番下の中央にある青い「○ ホーム」ボタンを押してホーム画面へ戻ってください。',
+          hint: 'スマホ画面一番下の中央にある青い「○ ホーム」ボタンを押すと、アプリアイコンが並んだ玄関画面に戻ります。',
+          safeScreen: 'home'
+        },
+        {
+          title: '3. 「🖼️ 写真アルバム」アプリを開きましょう',
+          desc: 'ホーム画面にある赤い「新着1」が付いたオレンジ色の「🖼️ 写真アルバム」アイコンを押して開いてください。',
+          hint: 'ホーム画面の1段目右にある「🖼️ 写真アルバム」アイコンをタップします。',
+          safeScreen: 'home'
+        },
+        {
+          title: '4. 保存された「予約控え（R-8420）」の画像を押して確認しましょう',
+          desc: '写真アルバムに保存された「健康診断・窓口予約票（R-8420）」の画像カードを押して、中身がきちんと撮れているか拡大確認してください。',
+          hint: '黄色く囲まれた「健康診断・窓口予約票（予約番号：R-8420）」のカードをタップすると確認完了です！',
+          safeScreen: 'photos'
+        }
+      ]
+    };
+
+    // =====================================================================
+    // B. アプリケーション一元状態（AppState）
+    // =====================================================================
+    const AppState = {
+      theme: 'light',
+      fontLarge: false,
+      stepIndex: 0,
+      completed: false,
+      hintVisible: false,
+
+      // 画面ルーティング状態
+      activeScreen: 'browser', // 'home' | 'drawer' | 'browser' | 'photos' | 'recents'
+
+      // バックグラウンド起動中アプリ一覧
+      runningApps: ['browser'],
+
+      // スクリーンショット状態
+      screenshotCaptured: false,
+      screenshotInspected: false
+    };
+
+    // =====================================================================
+    // C. 排他的画面ルーティングエンジン（ScreenRouter）
+    //    ※ 遷移元および非アクティブ要素を必ず display: none & aria-hidden="true" にする
+    // =====================================================================
+    const ScreenRouter = {
+      SCREEN_DOM_IDS: {
+        home: 'screenHome',
+        drawer: 'screenDrawer',
+        browser: 'screenBrowser',
+        photos: 'screenPhotos',
+        recents: 'screenRecents'
+      },
+
+      navigate(targetKey, animType = 'zoom') {
+        try {
+          if (!this.SCREEN_DOM_IDS[targetKey]) return;
+
+          // シャッターフラッシュが開いていたら確実に閉じる
+          const flashEl = document.getElementById('screenShutterFlash');
+          if (flashEl) {
+            flashEl.style.display = 'none';
+            flashEl.setAttribute('aria-hidden', 'true');
+          }
+
+          AppState.activeScreen = targetKey;
+
+          // すべての画面を走査し、非アクティブ画面は即座に display: none & aria-hidden="true"
+          Object.entries(this.SCREEN_DOM_IDS).forEach(([key, domId]) => {
+            const el = document.getElementById(domId);
+            if (!el) return;
+            el.classList.remove('anim-zoom', 'anim-slide-up');
+            if (key !== targetKey) {
+              el.style.display = 'none';
+              el.setAttribute('aria-hidden', 'true');
+            }
+          });
+
+          // アクティブ画面のみ表示
+          const activeEl = document.getElementById(this.SCREEN_DOM_IDS[targetKey]);
+          if (activeEl) {
+            activeEl.style.display = 'flex';
+            activeEl.setAttribute('aria-hidden', 'false');
+            void activeEl.offsetWidth;
+            activeEl.classList.add(animType === 'slide' ? 'anim-slide-up' : 'anim-zoom');
+          }
+
+          // 画面ごとの固有描画更新
+          if (targetKey === 'home') {
+            this.updateHomeBadges();
+          } else if (targetKey === 'browser') {
+            BrowserAppController.render();
+          } else if (targetKey === 'photos') {
+            PhotosAppController.render();
+          } else if (targetKey === 'recents') {
+            this.renderRecents();
+          }
+
+          LessonEngine.evaluateNavigationStep(targetKey);
+          LayerMapEngine.render();
+        } catch (err) {
+          console.error('画面遷移エラー:', err);
+        }
+      },
+
+      openApp(appId) {
+        if (!AppState.runningApps.includes(appId)) {
+          AppState.runningApps.push(appId);
+        } else {
+          AppState.runningApps = [...AppState.runningApps.filter(id => id !== appId), appId];
+        }
+        this.navigate(appId, 'zoom');
+      },
+
+      pressHome() {
+        this.navigate('home', 'zoom');
+      },
+
+      pressBack() {
+        if (AppState.activeScreen === 'photos' && AppState.screenshotInspected) {
+          AppState.screenshotInspected = false;
+          PhotosAppController.render();
+          return;
+        }
+        if (AppState.activeScreen !== 'home') {
+          this.navigate('home', 'zoom');
+        }
+      },
+
+      pressRecents() {
+        if (AppState.activeScreen === 'recents') {
+          const lastApp = AppState.runningApps[AppState.runningApps.length - 1] || 'browser';
+          this.navigate(lastApp, 'zoom');
+        } else {
+          this.navigate('recents', 'slide');
+        }
+      },
+
+      updateHomeBadges() {
+        const browserBadge = document.getElementById('badgeHomeBrowser');
+        const photosBadge = document.getElementById('badgeHomePhotos');
+
+        const isBrowserWaiting = AppState.runningApps.includes('browser') && AppState.activeScreen !== 'browser';
+        browserBadge.style.display = isBrowserWaiting ? 'inline-block' : 'none';
+        browserBadge.setAttribute('aria-hidden', isBrowserWaiting ? 'false' : 'true');
+
+        const showPhotosNew = AppState.screenshotCaptured && !AppState.screenshotInspected;
+        photosBadge.style.display = showPhotosNew ? 'inline-block' : 'none';
+        photosBadge.setAttribute('aria-hidden', showPhotosNew ? 'false' : 'true');
+      },
+
+      renderRecents() {
+        const container = document.getElementById('recentsCardsContainer');
+        const appMeta = {
+          browser: {
+            icon: '🌐',
+            name: '会員サイト（予約控え画面）',
+            color: '#0067C0',
+            status: '健康診断・窓口予約票（R-8420）を表示中'
+          },
+          photos: {
+            icon: '🖼️',
+            name: '写真アルバム',
+            color: '#D97706',
+            status: AppState.screenshotCaptured ? '撮影したスクリーンショットを保存済み' : '保存済み画像 0枚'
+          }
+        };
+
+        const list = [...AppState.runningApps].reverse();
+        container.innerHTML = list.map(appId => {
+          const meta = appMeta[appId];
+          if (!meta) return '';
+          return `
+            <button type="button" onclick="ScreenRouter.openApp('${appId}')"
+              class="w-full p-3 rounded-[10px] text-left cursor-pointer transition flex items-center justify-between bg-white text-[#0F172A] border border-[#CBD5E1] hover:bg-[#F8FAFC]">
+              <div class="flex items-center gap-2.5">
+                <span class="w-10 h-10 rounded-[8px] text-white flex items-center justify-center text-lg shrink-0"
+                  style="background-color: ${meta.color};">${meta.icon}</span>
+                <div>
+                  <div class="font-bold text-xs">${meta.name}</div>
+                  <div class="text-[11px] text-[#475569] mt-0.5">${meta.status}</div>
+                </div>
+              </div>
+              <span class="px-2 py-1 rounded bg-[#0067C0] text-white text-[11px] font-bold shrink-0">
+                この画面へ戻る
+              </span>
+            </button>
+          `;
+        }).join('');
+      },
+
+      showInfoToast(msg, durationMs = 2800) {
+        const box = document.getElementById('homeToastBox');
+        if (!box) return;
+        box.textContent = msg;
+        box.style.display = 'block';
+        box.setAttribute('aria-hidden', 'false');
+        setTimeout(() => {
+          box.style.display = 'none';
+          box.setAttribute('aria-hidden', 'true');
+        }, durationMs);
+      }
+    };
+
+    // =====================================================================
+    // D. 物理ボタン同時押しエンジン（HardwareButtonEngine：2.5秒ホールド補助）
+    // =====================================================================
+    const HardwareButtonEngine = {
+      powerHeldUntil: 0,
+      volDownHeldUntil: 0,
+      tickTimer: null,
+
+      reset() {
+        this.powerHeldUntil = 0;
+        this.volDownHeldUntil = 0;
+        if (this.tickTimer) {
+          clearInterval(this.tickTimer);
+          this.tickTimer = null;
+        }
+        this.updateUI();
+      },
+
+      pressButton(btnType) {
+        const now = Date.now();
+        const HOLD_WINDOW_MS = 2500; // 2.5秒間ホールド状態
+
+        if (btnType === 'power') {
+          this.powerHeldUntil = now + HOLD_WINDOW_MS;
+        } else if (btnType === 'volDown') {
+          this.volDownHeldUntil = now + HOLD_WINDOW_MS;
+        }
+
+        // 両方が有効ホールド時間内であれば同時押し撮影成功！
+        if (this.powerHeldUntil > now && this.volDownHeldUntil > now) {
+          this.reset();
+          this.triggerScreenshotCapture();
+          return;
+        }
+
+        this.updateUI();
+        if (!this.tickTimer) {
+          this.tickTimer = setInterval(() => {
+            const t = Date.now();
+            if (this.powerHeldUntil <= t && this.volDownHeldUntil <= t) {
+              this.reset();
+            } else {
+              this.updateUI();
+            }
+          }, 100);
+        }
+      },
+
+      updateUI() {
+        const now = Date.now();
+        const powerActive = this.powerHeldUntil > now;
+        const volActive = this.volDownHeldUntil > now;
+
+        const powerEl = document.getElementById('hwPowerBtn');
+        const volEl = document.getElementById('hwVolDownBtn');
+        const guideBadge = document.getElementById('hwHoldGuideBadge');
+
+        if (powerEl) powerEl.classList.toggle('hw-btn-held', powerActive);
+        if (volEl) volEl.classList.toggle('hw-btn-held', volActive);
+
+        if (guideBadge) {
+          if (powerActive) {
+            const rem = ((this.powerHeldUntil - now) / 1000).toFixed(1);
+            guideBadge.textContent = `⏻ 電源ボタンを押下中（残り ${rem}秒）→ 次に「🔉 音量下ボタン」を押す！`;
+            guideBadge.style.backgroundColor = 'var(--waiting-bg)';
+            guideBadge.style.borderColor = 'var(--waiting-border)';
+            guideBadge.style.color = 'var(--waiting-fg)';
+          } else if (volActive) {
+            const rem = ((this.volDownHeldUntil - now) / 1000).toFixed(1);
+            guideBadge.textContent = `🔉 音量下ボタンを押下中（残り ${rem}秒）→ 次に「⏻ 電源ボタン」を押す！`;
+            guideBadge.style.backgroundColor = 'var(--waiting-bg)';
+            guideBadge.style.borderColor = 'var(--waiting-border)';
+            guideBadge.style.color = 'var(--waiting-fg)';
+          } else {
+            guideBadge.textContent = '右側面：「⏻ 電源ボタン」＋「🔉 音量下ボタン」の2つ同時押しで撮影';
+            guideBadge.style.backgroundColor = 'var(--bg-card-sub)';
+            guideBadge.style.borderColor = 'var(--border-subtle)';
+            guideBadge.style.color = 'var(--text-secondary)';
+          }
+        }
+      },
+
+      triggerScreenshotCapture() {
+        AppState.screenshotCaptured = true;
+        this.updatePhotoStatusMonitors();
+
+        // 排他的シャッターフラッシュ表示（280ms後に元のアクティブ画面へ戻す）
+        const currentScreen = AppState.activeScreen;
+        Object.values(ScreenRouter.SCREEN_DOM_IDS).forEach(domId => {
+          const el = document.getElementById(domId);
+          if (el) {
+            el.style.display = 'none';
+            el.setAttribute('aria-hidden', 'true');
+          }
+        });
+
+        const flashEl = document.getElementById('screenShutterFlash');
+        if (flashEl) {
+          flashEl.style.display = 'flex';
+          flashEl.setAttribute('aria-hidden', 'false');
+        }
+
+        setTimeout(() => {
+          ScreenRouter.navigate(currentScreen, 'zoom');
+          if (AppState.stepIndex === 0) {
+            LessonEngine.advanceStepTo(1);
+          }
+        }, 320);
+      },
+
+      updatePhotoStatusMonitors() {
+        const phoneBadge = document.getElementById('phoneStatusPhotoBadge');
+        const monBox = document.getElementById('photoMonitorBox');
+        const monStatus = document.getElementById('photoMonitorStatus');
+        const monDetail = document.getElementById('photoMonitorDetail');
+
+        if (AppState.screenshotCaptured) {
+          phoneBadge.textContent = '🖼️ 保存画像：1枚（新着）';
+          phoneBadge.className = 'px-2 py-0.5 rounded-full bg-[#D97706] text-white text-[10px] font-bold flex items-center gap-1 max-w-[185px] truncate';
+
+          monBox.style.backgroundColor = 'var(--photo-tint)';
+          monBox.style.borderColor = 'var(--photo-primary)';
+          monStatus.style.color = 'var(--photo-primary)';
+          monStatus.textContent = '✓ 1枚の画像を保存済み';
+          monDetail.textContent = '健康診断・窓口予約票（予約番号：R-8420）';
+        } else {
+          phoneBadge.textContent = '🖼️ 保存画像：0枚';
+          phoneBadge.className = 'px-2 py-0.5 rounded-full bg-[#1E293B] text-[#94A3B8] text-[10px] font-bold flex items-center gap-1 max-w-[185px] truncate';
+
+          monBox.style.backgroundColor = 'var(--bg-card-sub)';
+          monBox.style.borderColor = 'var(--border-subtle)';
+          monStatus.style.color = 'var(--text-muted)';
+          monStatus.textContent = 'まだ撮影されていません';
+          monDetail.textContent = '予約控え画面を表示して撮影しましょう';
+        }
+      }
+    };
+
+    // =====================================================================
+    // E. 会員サイトコントローラー（BrowserAppController）
+    // =====================================================================
+    const BrowserAppController = {
+      render() {
+        const container = document.getElementById('browserContentArea');
+        container.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded bg-[#EBF4FF] text-[#0067C0] text-[11px] font-bold">予約完了・控え画面</span>
+              <span class="text-[11px] text-[#64748B]">大切な控え</span>
+            </div>
+
+            <!-- 撮影対象の予約控えカード -->
+            <div class="p-3.5 rounded-[10px] bg-[#F8FAFC] border-2 border-[#0067C0] space-y-2 shadow-2xs">
+              <div class="text-xs font-bold text-[#475569]">健康診断・窓口予約票</div>
+              <div class="text-xl font-extrabold text-[#0067C0] tracking-wider">予約番号：R-8420</div>
+              <div class="text-xs text-[#334155] border-t border-[#E2E8F0] pt-2 space-y-1">
+                <div><strong>日時：</strong>11月24日（火）午前 10:00</div>
+                <div><strong>会場：</strong>市民総合センター 2階窓口</div>
+                <div><strong>持ち物：</strong>健康保険証・案内ハガキ</div>
+              </div>
+            </div>
+
+            <div class="mt-3 p-2.5 rounded-[8px] border text-xs font-semibold leading-relaxed ${
+              AppState.screenshotCaptured
+                ? 'bg-[#DCFCE7] border-[#16A34A] text-[#15803D]'
+                : 'bg-[#FEF3C7] border-[#D97706] text-[#92400E]'
+            }">
+              ${
+                AppState.screenshotCaptured
+                  ? '✓ この画面を写真として撮影しました！下の「○ ホーム」ボタンから「🖼️ 写真アルバム」を開いて確認しましょう。'
+                  : 'この予約番号をメモ代わりに保存するため、スマホ右側面の「⏻ 電源ボタン」と「🔉 音量下ボタン」を2つ同時に押しましょう。'
+              }
+            </div>
+          </div>
+
+          <div class="text-[11px] text-center text-[#64748B]">
+            撮影後は「○ ホーム」→「🖼️ 写真アルバム」で確認できます
+          </div>
+        `;
+      }
+    };
+
+    // =====================================================================
+    // F. 写真アルバムコントローラー（PhotosAppController）
+    // =====================================================================
+    const PhotosAppController = {
+      render() {
+        const container = document.getElementById('photosContentArea');
+        if (!container) return;
+
+        // 1. まだ撮影されていない場合
+        if (!AppState.screenshotCaptured) {
+          container.innerHTML = `
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-3">
+              <div class="text-3xl mb-2">🖼️</div>
+              <div class="font-bold text-xs text-[#334155]">まだ新しく撮影したスクリーンショットはありません</div>
+              <p class="text-[11px] text-[#64748B] mt-1.5 leading-relaxed">
+                「🌐 会員サイト」の予約控え画面を表示した状態で、スマホ右側面の「⏻ 電源ボタン」と「🔉 音量下ボタン」を2つ同時に押すとここに自動保存されます。
+              </p>
+              <button type="button" onclick="ScreenRouter.openApp('browser')"
+                class="mt-4 w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs cursor-pointer">
+                🌐 会員サイトの予約控え画面へ戻る
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        // 2. 画像をタップして拡大確認完了した場合
+        if (AppState.screenshotInspected) {
+          container.innerHTML = `
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D] text-[11px] font-bold">✓ 保存済み画像を確認完了</span>
+                  <span class="text-[11px] text-[#64748B]">たった今保存</span>
+                </div>
+
+                <!-- 拡大表示されたスクリーンショット画像 -->
+                <div class="p-3.5 rounded-[10px] bg-[#F8FAFC] border-2 border-[#16A34A] space-y-1.5">
+                  <div class="text-[11px] font-bold text-[#0067C0]">📸 保存されたスクリーンショット画像</div>
+                  <div class="text-xs font-bold text-[#475569]">健康診断・窓口予約票</div>
+                  <div class="text-lg font-extrabold text-[#0F172A]">予約番号：R-8420</div>
+                  <div class="text-xs text-[#334155] border-t border-[#E2E8F0] pt-1.5">
+                    11月24日（火）午前 10:00 / 市民総合センター 2階窓口
+                  </div>
+                </div>
+
+                <p class="text-xs text-[#15803D] font-bold mt-3 leading-relaxed">
+                  おめでとうございます！インターネットが繋がらない場所でも、「🖼️ 写真アルバム」を開けばいつでも予約番号を見せられるようになりました。
+                </p>
+              </div>
+
+              <button type="button" onclick="resetCurrentLesson()"
+                class="w-full py-2.5 rounded-[8px] bg-[#D97706] hover:bg-[#B45309] text-white font-bold text-xs cursor-pointer">
+                もう一度最初から練習する
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        // 3. 撮影済み・サムネイル一覧表示（タップ待ち）
+        container.innerHTML = `
+          <div>
+            <div class="text-xs font-bold text-[#475569] mb-2">スクリーンショット一覧（1枚）</div>
+            <button type="button" onclick="PhotosAppController.inspectScreenshot()"
+              class="w-full p-3 rounded-[10px] bg-[#FEF3C7] border-2 border-[#D97706] text-left cursor-pointer hover:bg-[#FDE68A] transition shadow-2xs">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="px-2 py-0.5 rounded-full bg-[#DC2626] text-white text-[10px] font-bold">新着スクリーンショット</span>
+                <span class="text-[11px] font-bold text-[#92400E]">タップして拡大確認 →</span>
+              </div>
+              <div class="p-2.5 rounded-[6px] bg-white border border-[#F59E0B]">
+                <div class="text-[11px] font-bold text-[#475569]">健康診断・窓口予約票</div>
+                <div class="font-extrabold text-sm text-[#0067C0]">予約番号：R-8420</div>
+              </div>
+              <div class="text-[11px] text-[#475569] mt-1.5">会員サイトの画面をそのまま保存しました</div>
+            </button>
+          </div>
+
+          <div class="p-2.5 rounded-[8px] bg-[#F8FAFC] border border-[#CBD5E1] text-xs text-[#475569]">
+            上の画像カードを押すと大きく開いて確認できます。
+          </div>
+        `;
+      },
+
+      inspectScreenshot() {
+        AppState.screenshotInspected = true;
+        AppState.completed = true;
+        this.render();
+        LessonEngine.completeLesson();
+      }
+    };
+
+    // =====================================================================
+    // G. 共通立体階層マップエンジン（LayerMapEngine）
+    // =====================================================================
+    const LayerMapEngine = {
+      render() {
+        const screen = AppState.activeScreen;
+        const badge = document.getElementById('layerStatusSummaryBadge');
+        const expText = document.getElementById('layerExplanationText');
+
+        const cardMain = document.getElementById('layerCardMain');
+        const cardBase = document.getElementById('layerCardBase');
+        const cardPhotos = document.getElementById('layerCardPhotos');
+
+        const pillMain = document.getElementById('layerPillMain');
+        const pillBase = document.getElementById('layerPillBase');
+        const pillPhotos = document.getElementById('layerPillPhotos');
+
+        const subMain = document.getElementById('layerSubMain');
+        const subBase = document.getElementById('layerSubBase');
+        const subPhotos = document.getElementById('layerSubPhotos');
+
+        // リセット
+        [cardMain, cardBase, cardPhotos].forEach(c => {
+          c.style.backgroundColor = 'var(--bg-card-sub)';
+          c.style.borderColor = 'var(--border-subtle)';
+        });
+        [pillMain, pillBase, pillPhotos].forEach(p => {
+          p.style.display = 'none';
+        });
+
+        if (screen === 'browser') {
+          badge.textContent = '最前面：🌐 会員サイト（控え）';
+          expText.textContent = AppState.screenshotCaptured
+            ? '予約控えの画面を撮影しました！撮影した画像は自動的に「🖼️ 写真アルバム」へ送られています。「○ ホーム」から見に行きましょう。'
+            : 'いま「🌐 会員サイト」の予約控えを表示しています。右側面の「⏻ 電源ボタン」と「🔉 音量下ボタン」を2つ同時に押すと、この画面が写真として保存されます。';
+
+          cardMain.style.backgroundColor = 'var(--accent-tint)';
+          cardMain.style.borderColor = 'var(--accent-primary)';
+          pillMain.style.display = 'block';
+          subMain.textContent = AppState.screenshotCaptured ? '✓ 撮影完了（控え画面）' : '● 現在画面に表示中';
+
+          subBase.textContent = '「○ ホーム」で移動';
+          subPhotos.textContent = AppState.screenshotCaptured ? '✓ 新着画像1枚を保存済み' : '撮影後に自動で保存';
+        } else if (screen === 'home' || screen === 'drawer' || screen === 'recents') {
+          badge.textContent = screen === 'home' ? '最前面：🏠 ホーム画面' : screen === 'drawer' ? '最前面：🗂️ アプリ一覧' : '切り替え：□ 履歴';
+          expText.textContent = AppState.screenshotCaptured
+            ? 'ホーム画面へ戻りました。撮影した予約控えは「🖼️ 写真アルバム」の中に入っています。アイコンを押して確認しましょう。'
+            : '基準の玄関画面です。「🌐 会員サイト」を開いて予約控えを撮影しましょう。';
+
+          cardBase.style.backgroundColor = 'var(--accent-tint)';
+          cardBase.style.borderColor = 'var(--accent-primary)';
+          pillBase.style.display = 'block';
+          subBase.textContent = '● 現在表示中';
+
+          if (AppState.screenshotCaptured) {
+            cardPhotos.style.backgroundColor = 'var(--photo-tint)';
+            cardPhotos.style.borderColor = 'var(--photo-primary)';
+            subPhotos.textContent = '● 新着画像あり（タップで確認）';
+          }
+        } else if (screen === 'photos') {
+          badge.textContent = '最前面：🖼️ 写真アルバム';
+          expText.textContent = AppState.screenshotInspected
+            ? '保存されたスクリーンショット画像を大きく表示して確認しました！いつでもこの写真アルバムから見返せます。'
+            : '「🖼️ 写真アルバム」を開きました。先ほど撮影した予約控えの画像カードを押して中身を確認しましょう。';
+
+          cardPhotos.style.backgroundColor = 'var(--photo-tint)';
+          cardPhotos.style.borderColor = 'var(--photo-primary)';
+          pillPhotos.style.display = 'block';
+          subPhotos.textContent = '● 現在表示中';
+        }
+      }
+    };
+
+    // =====================================================================
+    // H. レッスン進行・ガイド管理エンジン（LessonEngine）
+    // =====================================================================
+    const LessonEngine = {
+      reset() {
+        AppState.stepIndex = 0;
+        AppState.completed = false;
+        AppState.hintVisible = false;
+        AppState.runningApps = ['browser'];
+        AppState.screenshotCaptured = false;
+        AppState.screenshotInspected = false;
+        HardwareButtonEngine.reset();
+        HardwareButtonEngine.updatePhotoStatusMonitors();
+        this.renderStepGuide();
+        ScreenRouter.navigate('browser', 'zoom');
+      },
+
+      advanceStepTo(nextIndex) {
+        if (nextIndex > AppState.stepIndex && nextIndex < SCREENSHOT_LESSON.steps.length) {
+          AppState.stepIndex = nextIndex;
+          this.renderStepGuide();
+        }
+      },
+
+      completeLesson() {
+        AppState.completed = true;
+        this.renderStepGuide();
+        LayerMapEngine.render();
+      },
+
+      evaluateNavigationStep(screenKey) {
+        if (AppState.completed) return;
+
+        if (AppState.stepIndex === 1 && screenKey === 'home' && AppState.screenshotCaptured) {
+          this.advanceStepTo(2);
+        } else if (AppState.stepIndex === 2 && screenKey === 'photos' && AppState.screenshotCaptured) {
+          this.advanceStepTo(3);
+        }
+      },
+
+      renderStepGuide() {
+        const total = SCREENSHOT_LESSON.steps.length;
+        const step = SCREENSHOT_LESSON.steps[AppState.stepIndex] || SCREENSHOT_LESSON.steps[total - 1];
+
+        document.getElementById('lessonTitleDisplay').textContent = SCREENSHOT_LESSON.title;
+        const counterEl = document.getElementById('lessonStepCounter');
+
+        if (AppState.completed) {
+          counterEl.textContent = '🎉 全ステップ達成！';
+          counterEl.style.backgroundColor = 'var(--success-fg)';
+          counterEl.style.color = '#FFFFFF';
+          document.getElementById('stepInstructionTitle').textContent = 'おめでとうございます！スクリーンショットの撮影と確認をマスターしました';
+          document.getElementById('stepInstructionDesc').textContent = '「↺ 最初からやり直す」を押すと、何度でも繰り返し練習できます。';
+        } else {
+          counterEl.textContent = `ステップ ${AppState.stepIndex + 1} / ${total}`;
+          counterEl.style.backgroundColor = 'var(--photo-primary)';
+          counterEl.style.color = '#FFFFFF';
+          document.getElementById('stepInstructionTitle').textContent = step.title;
+          document.getElementById('stepInstructionDesc').textContent = step.desc;
+        }
+
+        // ヒントパネルの排他的表示制御
+        const hintPanel = document.getElementById('stepHintPanel');
+        const hintBtn = document.getElementById('toggleStepHintBtn');
+        document.getElementById('stepHintText').textContent = step.hint;
+
+        if (AppState.hintVisible && !AppState.completed) {
+          hintPanel.style.display = 'block';
+          hintPanel.setAttribute('aria-hidden', 'false');
+          hintBtn.setAttribute('aria-expanded', 'true');
+          hintBtn.innerHTML = '<span>💡 ヒントを閉じる</span>';
+        } else {
+          hintPanel.style.display = 'none';
+          hintPanel.setAttribute('aria-hidden', 'true');
+          hintBtn.setAttribute('aria-expanded', 'false');
+          hintBtn.innerHTML = '<span>💡 ヒントを見る</span>';
+        }
+
+        // 進捗ドット描画
+        const dotsEl = document.getElementById('stepProgressDots');
+        dotsEl.innerHTML = SCREENSHOT_LESSON.steps.map((_, idx) => {
+          const isDone = AppState.completed || idx < AppState.stepIndex;
+          const isCurrent = !AppState.completed && idx === AppState.stepIndex;
+          return `
+            <div class="h-2 flex-1 rounded-full transition"
+              style="background-color: ${
+                isDone ? 'var(--success-border)' : isCurrent ? 'var(--photo-primary)' : 'var(--border-subtle)'
+              };"></div>
+          `;
+        }).join('');
+      }
+    };
+
+    // =====================================================================
+    // I. 補助コントロール関数（テーマ・文字サイズ・ヒント・迷子復帰）
+    // =====================================================================
+    function toggleFontSize() {
+      AppState.fontLarge = !AppState.fontLarge;
+      document.documentElement.classList.toggle('font-large', AppState.fontLarge);
+      document.getElementById('fontToggleBtn').setAttribute('aria-checked', AppState.fontLarge ? 'true' : 'false');
+      document.getElementById('fontSizeStatusLabel').textContent = AppState.fontLarge ? '文字サイズ：大きめ' : '文字サイズ：標準';
+    }
+
+    function toggleTheme() {
+      AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', AppState.theme);
+      document.getElementById('themeToggleBtn').setAttribute('aria-checked', AppState.theme === 'dark' ? 'true' : 'false');
+      document.getElementById('themeStatusLabel').textContent = AppState.theme === 'dark' ? '配色：ダーク' : '配色：ライト';
+      LayerMapEngine.render();
+      HardwareButtonEngine.updatePhotoStatusMonitors();
+    }
+
+    function toggleStepHint(forceVal = null) {
+      AppState.hintVisible = forceVal !== null ? forceVal : !AppState.hintVisible;
+      LessonEngine.renderStepGuide();
+    }
+
+    function resetCurrentLesson() {
+      LessonEngine.reset();
+    }
+
+    function recoverToSafePoint() {
+      const step = SCREENSHOT_LESSON.steps[AppState.stepIndex];
+      const target = (step && step.safeScreen) ? step.safeScreen : 'browser';
+      ScreenRouter.navigate(target, 'zoom');
+    }
+
+    // =====================================================================
+    // J. 初期化実行
+    // =====================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      LessonEngine.reset();
+    });
+  </script>
+</body>
+</html>
