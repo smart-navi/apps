@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>メール認証シミュレーター | smart-navi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/simulator-common.css" />
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <header class="app-header sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-[8px] flex items-center justify-center shrink-0 text-xl"
+          style="background-color: var(--accent-primary); color: var(--accent-text);">
+          ✉️
+        </div>
+        <div>
+          <nav aria-label="パンくずリスト" class="text-[11px] font-semibold flex items-center gap-1.5 mb-0.5"
+            style="color: var(--text-muted);">
+            <a href="../index.html" class="hover:underline" style="color: var(--accent-primary);">レッスン一覧</a><span>＞</span><a href="./index.html" class="hover:underline" style="color: var(--accent-primary);">メール認証</a><span>＞</span><span>練習画面</span>
+          </nav>
+          <h1 class="text-base sm:text-lg font-bold leading-tight" style="color: var(--text-primary);">
+            メール認証シミュレーター（確認コードの往復入力）
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div class="flex items-center gap-2">
+          <span id="fontSizeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
+            文字サイズ：標準
+          </span>
+          <button type="button" id="fontToggleBtn" role="switch" aria-checked="false"
+            onclick="SmartNaviCommon.toggleFontSize(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
+            class="ui-toggle" aria-label="文字サイズを標準と大きめで切り替える"></button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="themeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
+            配色：ライト
+          </span>
+          <button type="button" id="themeToggleBtn" role="switch" aria-checked="false"
+            onclick="SmartNaviCommon.toggleTheme(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
+            class="ui-toggle" aria-label="配色をライトとダークで切り替える"></button>
+        </div>
+        <button type="button" onclick="resetLesson()" class="ui-btn px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5"><span>↺ 最初からやり直す</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+    <!-- 左カラム：バーチャルスマートフォン -->
+    <section class="lg:col-span-5 flex flex-col items-center">
+      <div class="ui-card w-full max-w-[440px] p-4 flex flex-col items-center">
+        <div class="w-full flex items-center justify-between gap-2 mb-2.5">
+          <span class="text-xs font-bold" style="color: var(--text-secondary);">📱 練習用スマートフォン</span>
+          <button type="button" onclick="recoverToSafePoint()" class="ui-btn px-2.5 py-1 text-xs flex items-center gap-1">
+            <span>🧭 迷子になったら現在ステップへ戻る</span>
+          </button>
+        </div>
+
+        <div class="relative w-full max-w-[340px] h-[630px] bg-[#1E293B] rounded-[36px] p-2.5 shadow-xl border-[3px] border-[#334155] flex flex-col shrink-0">
+          <div class="h-4 flex items-center justify-center gap-2 mb-1">
+            <div class="w-12 h-1 bg-[#475569] rounded-full"></div>
+            <div class="w-2 h-2 bg-[#334155] border border-[#64748B] rounded-full"></div>
+          </div>
+
+          <div class="relative flex-1 w-full rounded-[24px] overflow-hidden flex flex-col justify-between bg-[#F1F5F9] text-[#0F172A] select-none">
+            <!-- ステータスバー -->
+            <div class="relative z-20 px-3 py-1.5 bg-[#0F172A] text-white flex items-center justify-between text-xs font-semibold shrink-0">
+              <div class="flex items-center gap-1.5">
+                <span>10:30</span>
+                <span class="px-1.5 py-0.2 rounded bg-[#1E293B] text-[#CBD5E1] text-[10px]">接続良好</span>
+              </div>
+              <div id="phoneStatusClipboard"
+                class="px-2 py-0.5 rounded-full bg-[#1E293B] text-[#94A3B8] text-[10px] font-bold flex items-center gap-1 max-w-[185px] truncate">
+                <span>📋 一時メモ：なし</span>
+              </div>
+            </div>
+
+            <!-- 排他的スクリーンコンテナ -->
+            <div class="relative flex-1 w-full overflow-hidden">
+
+              <!-- 画面1：ホーム画面 -->
+              <div id="screenHome" aria-hidden="true" class="phone-screen-panel clean-scroll p-3.5 justify-between"
+                style="display: none; background-color: #DCE9F8;">
+                <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1]">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-2xl font-bold text-[#0F172A]">10:30</div>
+                      <div class="text-xs font-semibold text-[#475569]">11月17日（火）・晴れ</div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-[#EBF4FF] text-[#0067C0] text-xs font-bold">ホーム画面</span>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1]">
+                  <div class="text-xs font-bold text-[#475569] mb-2.5 text-center">開きたいアプリを押してください</div>
+                  <div class="grid grid-cols-3 gap-2.5">
+                    <button type="button" onclick="ScreenRouter.openApp('browser')"
+                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
+                      <span id="badgeHomeBrowser" aria-hidden="true" style="display: none;"
+                        class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-[#CA8A04] text-white text-[9px] font-bold">待機中</span>
+                      <span class="w-11 h-11 rounded-[10px] bg-[#0067C0] text-white flex items-center justify-center text-xl">🌐</span>
+                      <span class="text-xs font-bold text-[#0F172A]">会員サイト</span>
+                    </button>
+
+                    <button type="button" onclick="ScreenRouter.openApp('mail')"
+                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
+                      <span id="badgeHomeMail" aria-hidden="true" style="display: none;"
+                        class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-[#DC2626] text-white text-[9px] font-bold">新着1</span>
+                      <span class="w-11 h-11 rounded-[10px] bg-[#0284C7] text-white flex items-center justify-center text-xl">✉️</span>
+                      <span class="text-xs font-bold text-[#0F172A]">メール</span>
+                    </button>
+
+                    <button type="button" onclick="ScreenRouter.showInfoToast('今回の練習では「会員サイト」と「メール」を使います。')"
+                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
+                      <span class="w-11 h-11 rounded-[10px] bg-[#16A34A] text-white flex items-center justify-center text-xl">💬</span>
+                      <span class="text-xs font-bold text-[#0F172A]">メッセージ</span>
+                    </button>
+
+                    <button type="button" onclick="ScreenRouter.showInfoToast('今回の練習では「会員サイト」と「メール」を使います。')"
+                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
+                      <span class="w-11 h-11 rounded-[10px] bg-[#15803D] text-white flex items-center justify-center text-xl">📞</span>
+                      <span class="text-xs font-bold text-[#0F172A]">電話</span>
+                    </button>
+
+                    <button type="button" onclick="ScreenRouter.showInfoToast('今回の練習では「会員サイト」と「メール」を使います。')"
+                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
+                      <span class="w-11 h-11 rounded-[10px] bg-[#334155] text-white flex items-center justify-center text-xl">📷</span>
+                      <span class="text-xs font-bold text-[#0F172A]">カメラ</span>
+                    </button>
+
+                    <button type="button" onclick="ScreenRouter.navigate('drawer', 'slide')"
+                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
+                      <span class="w-11 h-11 rounded-[10px] bg-[#64748B] text-white flex items-center justify-center text-xl">🗂️</span>
+                      <span class="text-xs font-bold text-[#0F172A]">全アプリ</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div id="homeToastBox" aria-hidden="true" style="display: none;"
+                  class="bg-[#0F172A] text-white rounded-[8px] p-2.5 text-xs font-semibold text-center"></div>
+
+                <div class="bg-white/95 rounded-[8px] p-2.5 border border-[#CBD5E1] text-center">
+                  <button type="button" onclick="ScreenRouter.navigate('drawer', 'slide')"
+                    class="text-xs font-bold text-[#0067C0] hover:underline cursor-pointer">
+                    ↑ ここを押すと「アプリ一覧の引き出し」が開きます
+                  </button>
+                </div>
+              </div>
+
+              <!-- 画面2：アプリ一覧ドロワー -->
+              <div id="screenDrawer" aria-hidden="true" class="phone-screen-panel clean-scroll p-3.5 justify-between"
+                style="display: none; background-color: #F8FAFC;">
+                <div>
+                  <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#E2E8F0]">
+                    <h2 class="font-bold text-sm text-[#0F172A]">🗂️ アプリ一覧（下の引き出し）</h2>
+                    <button type="button" onclick="ScreenRouter.navigate('home', 'zoom')"
+                      class="px-2 py-1 rounded bg-[#E2E8F0] text-xs font-bold text-[#0F172A] cursor-pointer">閉じる</button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <button type="button" onclick="ScreenRouter.openApp('browser')"
+                      class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
+                      <span class="w-9 h-9 rounded-[8px] bg-[#0067C0] text-white flex items-center justify-center text-lg">🌐</span>
+                      <div><div class="font-bold text-xs">会員サイト</div><div class="text-[10px] text-[#475569]">手続き画面</div></div>
+                    </button>
+                    <button type="button" onclick="ScreenRouter.openApp('mail')"
+                      class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
+                      <span class="w-9 h-9 rounded-[8px] bg-[#0284C7] text-white flex items-center justify-center text-lg">✉️</span>
+                      <div><div class="font-bold text-xs">メール</div><div class="text-[10px] text-[#475569]">受信トレイ</div></div>
+                    </button>
+                  </div>
+                </div>
+                <button type="button" onclick="ScreenRouter.navigate('home', 'zoom')"
+                  class="w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs cursor-pointer">ホーム画面へ戻る</button>
+              </div>
+
+              <!-- 画面3：会員サイト -->
+              <div id="screenBrowser" aria-hidden="false" class="phone-screen-panel clean-scroll"
+                style="display: flex; background-color: #FFFFFF;">
+                <div class="px-3 py-2 bg-[#0067C0] text-white flex items-center justify-between shrink-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm">🌐</span>
+                    <span class="font-bold text-xs">暮らしの会員サイト（手続き画面）</span>
+                  </div>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">安全な通信</span>
+                </div>
+                <div id="browserContentArea" class="flex-1 p-3.5 flex flex-col justify-between text-[#0F172A]"></div>
+              </div>
+
+              <!-- 画面4：メールアプリ -->
+              <div id="screenMail" aria-hidden="true" class="phone-screen-panel clean-scroll"
+                style="display: none; background-color: #FFFFFF;">
+                <div class="px-3 py-2 bg-[#0284C7] text-white flex items-center justify-between shrink-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm">✉️</span>
+                    <span class="font-bold text-xs">メールアプリ</span>
+                  </div>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">受信箱</span>
+                </div>
+
+                <!-- 受信トレイ一覧ビュー -->
+                <div id="mailInboxView" aria-hidden="false" class="flex-1 p-3 flex flex-col gap-2.5" style="display: flex;">
+                  <div class="text-xs font-bold text-[#475569] pb-1 border-b border-[#E2E8F0]">受信トレイのメール一覧</div>
+                  <button type="button" id="mailNewItemBtn" aria-hidden="true" style="display: none;"
+                    onclick="MailAppController.openDetail()"
+                    class="w-full p-3 rounded-[8px] bg-[#EBF4FF] border-2 border-[#0067C0] text-left cursor-pointer hover:bg-[#DBEAFE] transition">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="px-2 py-0.5 rounded-full bg-[#DC2626] text-white text-[10px] font-bold">新着・未読</span>
+                      <span class="text-[11px] font-semibold text-[#0067C0]">たった今</span>
+                    </div>
+                    <div class="font-bold text-xs text-[#0F172A]">差出人：暮らしの会員サポート</div>
+                    <div class="font-bold text-xs text-[#0067C0] mt-0.5">【重要】確認コードのお知らせ</div>
+                    <div class="text-[11px] text-[#475569] mt-1">タップしてメールの中身を開いてください →</div>
+                  </button>
+
+                  <div class="p-3 rounded-[8px] bg-[#F8FAFC] border border-[#E2E8F0] opacity-75">
+                    <div class="flex items-center justify-between mb-0.5">
+                      <span class="text-[10px] font-bold text-[#64748B]">既読</span>
+                      <span class="text-[10px] text-[#64748B]">昨日</span>
+                    </div>
+                    <div class="font-bold text-xs text-[#334155]">地域のお知らせ便り</div>
+                    <div class="text-[11px] text-[#64748B]">今月の健康体操教室のご案内</div>
+                  </div>
+                </div>
+
+                <!-- メール本文詳細ビュー -->
+                <div id="mailDetailView" aria-hidden="true" class="flex-1 p-3.5 flex-col justify-between" style="display: none;">
+                  <div>
+                    <button type="button" onclick="MailAppController.backToInbox()"
+                      class="mb-2.5 px-2.5 py-1 rounded bg-[#F1F5F9] text-xs font-bold text-[#334155] cursor-pointer">
+                      ← 受信トレイ一覧へ戻る
+                    </button>
+                    <div class="p-3 rounded-[8px] bg-[#F8FAFC] border border-[#CBD5E1]">
+                      <div class="text-[11px] text-[#475569]">差出人：暮らしの会員サポート</div>
+                      <h3 class="font-bold text-sm text-[#0F172A] mt-0.5 pb-2 border-b border-[#E2E8F0]">【重要】確認コードのお知らせ</h3>
+                      <p class="text-xs text-[#334155] leading-relaxed mt-2.5">
+                        本人確認のための6桁の確認コードをお送りします。下の番号を長押ししてコピーし、元の画面へ入力してください。
+                      </p>
+                      <div class="mt-3 p-3 rounded-[8px] bg-white border-2 border-[#0067C0] text-center">
+                        <div class="text-[11px] font-bold text-[#475569] mb-1">確認コード（6桁の数字）</div>
+                        <div
+                          onmousedown="SmartNaviCommon.clipboard.startHold('482915', 'mailHoldBar', onCodeCopied)"
+                          onmouseup="SmartNaviCommon.clipboard.cancelHold('mailHoldBar')"
+                          onmouseleave="SmartNaviCommon.clipboard.cancelHold('mailHoldBar')"
+                          ontouchstart="SmartNaviCommon.clipboard.startHold('482915', 'mailHoldBar', onCodeCopied)"
+                          ontouchend="SmartNaviCommon.clipboard.cancelHold('mailHoldBar')"
+                          class="py-2 px-3 rounded-[6px] bg-[#EBF4FF] text-2xl font-extrabold tracking-[0.22em] text-[#0067C0] cursor-pointer select-none">
+                          482915
+                        </div>
+                        <div class="w-full h-2 bg-[#E2E8F0] rounded-full overflow-hidden mt-2">
+                          <div id="mailHoldBar" class="h-full bg-[#16A34A] hold-progress-fill"></div>
+                        </div>
+                        <button type="button" onclick="SmartNaviCommon.clipboard.copyImmediate('482915', onCodeCopied)"
+                          class="mt-2.5 w-full py-2 px-3 rounded-[6px] bg-[#0067C0] hover:bg-[#00529B] text-white font-bold text-xs cursor-pointer">
+                          📋 長押ししてコピー（またはここを押す）
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-2.5 p-2.5 rounded-[8px] bg-[#FEF9C3] border border-[#CA8A04] text-xs text-[#854D0E] font-semibold">
+                    コピーできたら、一番下の「□ 履歴」ボタンを押して会員サイトへ戻りましょう。
+                  </div>
+                </div>
+              </div>
+
+              <!-- 画面5：履歴画面 -->
+              <div id="screenRecents" aria-hidden="true" class="phone-screen-panel clean-scroll p-3.5 justify-between text-white"
+                style="display: none; background-color: #1E293B;">
+                <div>
+                  <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-white/15">
+                    <h2 class="font-bold text-sm">□ 開いているアプリの履歴</h2>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/15">切り替え画面</span>
+                  </div>
+                  <p class="text-xs text-[#CBD5E1] mb-3 leading-relaxed">
+                    元の画面は消えていません。戻りたいアプリのカードを押してください。
+                  </p>
+                  <div id="recentsCardsContainer" class="space-y-2.5"></div>
+                </div>
+                <button type="button" onclick="ScreenRouter.navigate('home', 'zoom')"
+                  class="mt-3 w-full py-2.5 rounded-[8px] bg-white/15 hover:bg-white/25 text-white font-bold text-xs cursor-pointer">
+                  ○ ホーム画面へ戻る
+                </button>
+              </div>
+
+              <!-- 画面6：確認ダイアログ -->
+              <div id="modalConfirmDialog" aria-hidden="true" role="dialog" aria-modal="true"
+                class="phone-screen-panel p-4 justify-center items-center"
+                style="display: none; background-color: #0F172A;">
+                <div class="w-full bg-white text-[#0F172A] rounded-[12px] p-4 border-2 border-[#0067C0] shadow-lg">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="w-7 h-7 rounded-full bg-[#EBF4FF] text-[#0067C0] flex items-center justify-center font-bold text-sm">?</span>
+                    <h3 id="confirmDialogTitle" class="font-bold text-sm text-[#0F172A]">送信の確認</h3>
+                  </div>
+                  <p id="confirmDialogMessage" class="text-xs text-[#334155] leading-relaxed mb-4"></p>
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <button type="button" onclick="ConfirmDialog.reject()"
+                      class="py-2.5 px-3 rounded-[8px] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] font-bold text-xs text-[#334155] cursor-pointer">いいえ</button>
+                    <button type="button" onclick="ConfirmDialog.accept()"
+                      class="py-2.5 px-3 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] text-white font-bold text-xs cursor-pointer">はい</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 下部3ボタンナビゲーション -->
+            <div class="relative z-20 bg-[#0F172A] text-white px-2 py-1.5 flex items-center justify-around border-t border-white/15 shrink-0">
+              <button type="button" onclick="ScreenRouter.pressBack()"
+                class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 flex flex-col items-center justify-center cursor-pointer">
+                <span class="text-sm font-bold leading-none">◁</span>
+                <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">戻る</span>
+              </button>
+              <button type="button" onclick="ScreenRouter.pressHome()"
+                class="flex-1 py-1 mx-1 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] flex flex-col items-center justify-center cursor-pointer">
+                <span class="text-sm font-bold leading-none">○</span>
+                <span class="text-[10px] font-bold mt-1 text-white">ホーム</span>
+              </button>
+              <button type="button" onclick="ScreenRouter.pressRecents()"
+                class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 flex flex-col items-center justify-center cursor-pointer">
+                <span class="text-sm font-bold leading-none">□</span>
+                <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">履歴</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" onclick="ScreenRouter.navigate('drawer', 'slide')"
+          class="ui-btn w-full mt-3 py-2 px-3 text-xs flex items-center justify-center gap-1.5">
+          <span>↑ 下から引き出す（アプリ一覧を開く）</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 右カラム：ステップ案内・立体階層マップ・共通パーツトレイ -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+      <div class="ui-card p-4 sm:p-5 border-l-4" style="border-left-color: var(--accent-primary);">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span id="lessonStepCounter" class="px-2.5 py-0.5 rounded-full text-xs font-bold"
+              style="background-color: var(--accent-primary); color: var(--accent-text);">ステップ 1 / 7</span>
+            <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">メール認証（確認コードの往復入力）</h2>
+          </div>
+          <button type="button" id="toggleStepHintBtn" aria-expanded="false" onclick="toggleHint()"
+            class="ui-btn px-3 py-1.5 text-xs flex items-center gap-1"><span>💡 ヒントを見る</span></button>
+        </div>
+
+        <div class="ui-card-sub p-3.5">
+          <div id="stepInstructionTitle" class="font-bold text-sm sm:text-base mb-1" style="color: var(--accent-primary);"></div>
+          <p id="stepInstructionDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);"></p>
+        </div>
+
+        <div id="stepHintPanel" aria-hidden="true" style="display: none;" class="mt-3 p-3.5 rounded-[8px] border"
+          style="background-color: var(--accent-tint); border-color: var(--accent-primary);">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-xs" style="color: var(--accent-primary);">💡 操作のヒント</span>
+            <button type="button" onclick="toggleHint(false)" class="text-xs font-bold px-2 py-0.5 rounded cursor-pointer" style="color: var(--text-secondary);">✕ 閉じる</button>
+          </div>
+          <p id="stepHintText" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);"></p>
+        </div>
+
+        <div id="stepProgressDots" class="flex items-center gap-1.5 mt-3"></div>
+      </div>
+
+      <!-- 立体階層マップ -->
+      <div class="ui-card p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">🗺️ スマホ立体階層マップ（画面の重なりと待機状態）</h2>
+          <span id="layerStatusSummaryBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full"
+            style="background-color: var(--accent-tint); color: var(--accent-primary);">最前面：会員サイト</span>
+        </div>
+        <p id="layerExplanationText" class="text-xs sm:text-sm leading-relaxed mb-3" style="color: var(--text-secondary);"></p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div id="layerCardBase" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillBase" class="ui-pill mt-0.5" style="display: none;"></span>
+            <div class="flex-1">
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">土台の玄関</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🏠 ホーム / 🗂️ 一覧</div>
+              <div id="layerSubBase" class="text-[11px] mt-1" style="color: var(--text-secondary);">「○ ホーム」でいつでも帰還</div>
+            </div>
+          </div>
+          <div id="layerCardWaiting" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillWaiting" class="ui-pill mt-0.5" style="display: none;"></span>
+            <div class="flex-1">
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">元の手続き画面</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🌐 会員サイト</div>
+              <div id="layerSubWaiting" class="text-[11px] mt-1" style="color: var(--text-secondary);">現在操作中</div>
+            </div>
+          </div>
+          <div id="layerCardOverlay" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillOverlay" class="ui-pill mt-0.5" style="display: none;"></span>
+            <div class="flex-1">
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">上に重なる別アプリ</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">✉️ メールアプリ</div>
+              <div id="layerSubOverlay" class="text-[11px] mt-1" style="color: var(--text-secondary);">番号確認用に重ねて開く</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 共通パーツトレイ & 一時メモ -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-7 ui-card p-4">
+          <h2 class="font-bold text-sm mb-2" style="color: var(--text-primary);">🧩 共通パーツトレイ（タップまたはドラッグで入力）</h2>
+          <p class="text-xs mb-3" style="color: var(--text-secondary);">小さなキーボードで打たずに、下の部品を押すだけでスマホの欄へ入れられます。</p>
+          <div id="tokenTrayContainer" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="md:col-span-5 ui-card p-4 flex flex-col justify-between">
+          <div>
+            <h2 class="font-bold text-sm mb-1" style="color: var(--text-primary);">📋 一時メモ（クリップボード）</h2>
+            <p class="text-xs mb-2.5" style="color: var(--text-secondary);">長押しコピーした番号がここに一時保存されます。</p>
+          </div>
+          <div id="clipboardMonitorBox" class="p-3 rounded-[8px] border text-center"
+            style="background-color: var(--bg-card-sub); border-color: var(--border-subtle);">
+            <div id="clipboardStatusText" class="text-xs font-semibold" style="color: var(--text-muted);">まだ何もコピーされていません</div>
+            <div id="clipboardValueDisplay" class="text-xl font-extrabold tracking-widest mt-1" style="color: var(--accent-primary);">---</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer mt-auto py-4 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+      <div>smart-navi スマートフォン操作練習シミュレーター</div>
+      <div class="font-semibold">© 2026 smart-navi</div>
+    </div>
+  </footer>
+
+  <script src="../assets/simulator-common.js"></script>
+  <script>
+    const LESSON_SLUG = 'email-auth';
+    const EXPECTED_CODE = '482915';
+
+    const STEPS = [
+      {
+        title: '1. メールアドレスのパーツを枠にセットしましょう',
+        desc: '下の「共通パーツトレイ」にある「******@your-mail.com」を押すか、スマホのメールアドレス欄へドラッグして入れてください。',
+        hint: '右下の「******@your-mail.com」ボタンを1回押すだけで、スマホ内のメールアドレス欄に自動でセットされます。',
+        safeScreen: 'browser',
+        tokens: [{ id: 'tok_email', label: '******@your-mail.com', value: '******@your-mail.com', icon: '✉️' }]
+      },
+      {
+        title: '2. 「確認コードを送信」を押して確認画面で「はい」を選びましょう',
+        desc: 'メールアドレスが入ったら、スマホ内の青い「確認コードを送信」ボタンを押し、確認画面で「はい」を押してください。',
+        hint: 'スマホ画面の「確認コードを送信」を押すと「送信しますか？」と出るので「はい」を押します。',
+        safeScreen: 'browser',
+        tokens: [{ id: 'tok_email', label: '******@your-mail.com', value: '******@your-mail.com', icon: '✉️' }]
+      },
+      {
+        title: '3. 元の画面を閉じずに「メール」アプリを開きましょう',
+        desc: '下の「○ ホーム」ボタンを押してホーム画面へ戻り、赤い「新着1」が付いた「✉️ メール」アプリを開いてください。',
+        hint: 'スマホ一番下の中央にある青い「○ ホーム」ボタンを押し、次に「✉️ メール」アイコンを押します。会員サイトは消えずに待機しています。',
+        safeScreen: 'home',
+        tokens: []
+      },
+      {
+        title: '4. 受信トレイの新着メールを開きましょう',
+        desc: 'メールアプリの受信トレイにある「【重要】確認コードのお知らせ」をタップして中身を開いてください。',
+        hint: '青く囲まれた「【重要】確認コードのお知らせ」のカードを押すと本文が開きます。',
+        safeScreen: 'mail',
+        tokens: []
+      },
+      {
+        title: '5. 確認コード「482915」を長押ししてコピーしましょう',
+        desc: 'メール本文にある「482915」の枠を1秒間長押し（または下のコピーボタン）して、一時メモにコピーしてください。',
+        hint: '「482915」の数字を押したまま1秒待つか、すぐ下の「📋 長押ししてコピー」ボタンを押すと一時メモに保存されます。',
+        safeScreen: 'mail',
+        tokens: []
+      },
+      {
+        title: '6. 「□ 履歴」ボタンから元の「会員サイト」へ戻りましょう',
+        desc: '一番下の右下にある「□ 履歴」ボタンを押し、待機中の「🌐 会員サイト」カードを選んで元の画面に戻ってください。',
+        hint: 'スマホ一番下の右端「□ 履歴」を押すと、開いているアプリ一覧が出ます。「🌐 会員サイト」を押して戻りましょう。',
+        safeScreen: 'recents',
+        tokens: []
+      },
+      {
+        title: '7. コピーした番号を貼り付けて「認証する」を押しましょう',
+        desc: '確認コード欄の「📋 一時メモから貼り付け」ボタンを押し、「認証する」を押して完了です！',
+        hint: 'スマホ内の「📋 一時メモから貼り付け」ボタンを押すと「482915」が入ります。最後に緑の「認証する」ボタンを押してください。',
+        safeScreen: 'browser',
+        tokens: []
+      }
+    ];
+
+    const LessonState = {
+      stepIndex: 0,
+      completed: false,
+      hintVisible: false,
+      activeScreen: 'browser',
+      runningApps: ['browser'],
+      mailViewMode: 'inbox',
+      newMessageArrived: false,
+      email: '',
+      code: '',
+      codeSent: false
+    };
+
+    const SCREEN_DOM_MAP = {
+      home: 'screenHome',
+      drawer: 'screenDrawer',
+      browser: 'screenBrowser',
+      mail: 'screenMail',
+      recents: 'screenRecents'
+    };
+
+    const ScreenRouter = {
+      navigate(targetKey, animType = 'zoom') {
+        ConfirmDialog.close();
+        LessonState.activeScreen = targetKey;
+        SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, targetKey, animType);
+
+        if (targetKey === 'home') this.updateHomeBadges();
+        else if (targetKey === 'browser') BrowserApp.render();
+        else if (targetKey === 'mail') MailAppController.render();
+        else if (targetKey === 'recents') this.renderRecents();
+
+        if (!LessonState.completed) {
+          if (LessonState.stepIndex === 2 && targetKey === 'mail') advanceStep(3);
+          if (LessonState.stepIndex === 5 && targetKey === 'browser' && SmartNaviCommon.state.clipboardText === EXPECTED_CODE) {
+            advanceStep(6);
+          }
+        }
+        LayerMap.render();
+      },
+      openApp(appId) {
+        LessonState.runningApps = [...LessonState.runningApps.filter(id => id !== appId), appId];
+        this.navigate(appId, 'zoom');
+      },
+      pressHome() { this.navigate('home', 'zoom'); },
+      pressBack() {
+        if (LessonState.activeScreen === 'mail' && LessonState.mailViewMode === 'detail') {
+          MailAppController.backToInbox();
+          return;
+        }
+        if (LessonState.activeScreen !== 'home') this.navigate('home', 'zoom');
+      },
+      pressRecents() {
+        if (LessonState.activeScreen === 'recents') {
+          const last = LessonState.runningApps[LessonState.runningApps.length - 1] || 'browser';
+          this.navigate(last, 'zoom');
+        } else {
+          this.navigate('recents', 'slide');
+        }
+      },
+      updateHomeBadges() {
+        const b = document.getElementById('badgeHomeBrowser');
+        const m = document.getElementById('badgeHomeMail');
+        const waiting = LessonState.runningApps.includes('browser') && LessonState.activeScreen !== 'browser';
+        b.style.display = waiting ? 'inline-block' : 'none';
+        b.setAttribute('aria-hidden', waiting ? 'false' : 'true');
+        m.style.display = LessonState.newMessageArrived ? 'inline-block' : 'none';
+        m.setAttribute('aria-hidden', LessonState.newMessageArrived ? 'false' : 'true');
+      },
+      renderRecents() {
+        const container = document.getElementById('recentsCardsContainer');
+        const meta = {
+          browser: { icon: '🌐', name: '会員サイト（手続き画面）', color: '#0067C0', status: LessonState.codeSent ? '確認コード入力待ち（待機中）' : '入力途中（待機中）' },
+          mail: { icon: '✉️', name: 'メールアプリ', color: '#0284C7', status: SmartNaviCommon.state.clipboardText ? '確認コードをコピー済み' : '受信トレイ表示中' }
+        };
+        container.innerHTML = [...LessonState.runningApps].reverse().map(id => {
+          const m = meta[id];
+          if (!m) return '';
+          const hi = id === 'browser' && LessonState.stepIndex >= 5;
+          return `
+            <button type="button" onclick="ScreenRouter.openApp('${id}')"
+              class="w-full p-3 rounded-[10px] text-left cursor-pointer flex items-center justify-between ${hi ? 'bg-[#EBF4FF] text-[#0F172A] border-2 border-[#4CC2FF]' : 'bg-white text-[#0F172A] border border-[#CBD5E1]'}">
+              <div class="flex items-center gap-2.5">
+                <span class="w-10 h-10 rounded-[8px] text-white flex items-center justify-center text-lg" style="background-color: ${m.color};">${m.icon}</span>
+                <div><div class="font-bold text-xs">${m.name}</div><div class="text-[11px] text-[#475569]">${m.status}</div></div>
+              </div>
+              <span class="px-2 py-1 rounded bg-[#0067C0] text-white text-[11px] font-bold">戻る</span>
+            </button>
+          `;
+        }).join('');
+      },
+      showInfoToast(msg) {
+        const box = document.getElementById('homeToastBox');
+        box.textContent = msg;
+        box.style.display = 'block';
+        box.setAttribute('aria-hidden', 'false');
+        setTimeout(() => { box.style.display = 'none'; box.setAttribute('aria-hidden', 'true'); }, 2500);
+      }
+    };
+
+    const ConfirmDialog = {
+      cb: null,
+      open(title, msg, onAccept) {
+        this.cb = onAccept;
+        Object.values(SCREEN_DOM_MAP).forEach(domId => {
+          const el = document.getElementById(domId);
+          if (el) { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); }
+        });
+        document.getElementById('confirmDialogTitle').textContent = title;
+        document.getElementById('confirmDialogMessage').textContent = msg;
+        const d = document.getElementById('modalConfirmDialog');
+        d.style.display = 'flex';
+        d.setAttribute('aria-hidden', 'false');
+      },
+      close() {
+        this.cb = null;
+        const d = document.getElementById('modalConfirmDialog');
+        if (d) { d.style.display = 'none'; d.setAttribute('aria-hidden', 'true'); }
+      },
+      accept() {
+        const fn = this.cb;
+        this.close();
+        SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, LessonState.activeScreen, 'zoom');
+        if (typeof fn === 'function') fn();
+      },
+      reject() {
+        this.close();
+        SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, LessonState.activeScreen, 'zoom');
+      }
+    };
+
+    const BrowserApp = {
+      applyEmailToken() {
+        if (LessonState.activeScreen !== 'browser') ScreenRouter.openApp('browser');
+        LessonState.email = '******@your-mail.com';
+        this.render();
+        if (LessonState.stepIndex === 0) advanceStep(1);
+      },
+      onDropEmail(ev) {
+        ev.preventDefault();
+        ev.currentTarget.classList.remove('drop-target-active');
+        this.applyEmailToken();
+      },
+      requestSend() {
+        if (!LessonState.email) return;
+        ConfirmDialog.open('送信の確認', `このメールアドレス（${LessonState.email}）に確認コードを送信しますか？`, () => {
+          LessonState.codeSent = true;
+          LessonState.newMessageArrived = true;
+          this.render();
+          advanceStep(2);
+        });
+      },
+      pasteCode() {
+        if (!SmartNaviCommon.state.clipboardText) return;
+        LessonState.code = SmartNaviCommon.state.clipboardText;
+        this.render();
+      },
+      submitCode() {
+        if (LessonState.code === EXPECTED_CODE) {
+          LessonState.completed = true;
+          SmartNaviCommon.markLessonCompleted(LESSON_SLUG);
+          this.render();
+          renderStepUI();
+          LayerMap.render();
+        }
+      },
+      render() {
+        const c = document.getElementById('browserContentArea');
+        if (LessonState.completed) {
+          c.innerHTML = `
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-2">
+              <div class="w-16 h-16 rounded-full bg-[#DCFCE7] text-[#15803D] flex items-center justify-center text-3xl font-bold mb-3">✓</div>
+              <h3 class="font-bold text-base text-[#15803D] mb-1">メール認証が完了しました！</h3>
+              <p class="text-xs text-[#334155] leading-relaxed mb-4">
+                元の画面を閉じずにメールアプリで番号をコピーし、「□ 履歴」から戻って貼り付ける流れを体験できました。
+              </p>
+              <div class="w-full space-y-2">
+                <a href="../sms-auth/index.html" class="block w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs no-underline">
+                  次のレッスン「SMS認証」へ進む →
+                </a>
+                <button type="button" onclick="resetLesson()" class="w-full py-2 rounded-[8px] bg-[#F1F5F9] text-[#334155] font-bold text-xs cursor-pointer">
+                  もう一度最初から練習する
+                </button>
+              </div>
+            </div>`;
+          return;
+        }
+        if (!LessonState.codeSent) {
+          c.innerHTML = `
+            <div>
+              <div class="text-xs font-bold text-[#0067C0] mb-1">ステップ 1/2：本人確認メールの送信</div>
+              <h3 class="font-bold text-sm text-[#0F172A] mb-2">メールアドレスの確認</h3>
+              <p class="text-xs text-[#475569] leading-relaxed mb-3">ご登録のメールアドレスへ6桁の確認コードをお送りします。</p>
+              <label class="block text-xs font-bold text-[#334155] mb-1">メールアドレス</label>
+              <div ondragover="event.preventDefault(); this.classList.add('drop-target-active');"
+                ondragleave="this.classList.remove('drop-target-active');"
+                ondrop="BrowserApp.onDropEmail(event)"
+                onclick="if(!LessonState.email) BrowserApp.applyEmailToken()"
+                class="w-full p-3 rounded-[8px] border-2 border-dashed text-xs font-bold cursor-pointer ${LessonState.email ? 'bg-[#EBF4FF] border-[#0067C0] text-[#0F172A]' : 'bg-[#F8FAFC] border-[#94A3B8] text-[#64748B]'}">
+                ${LessonState.email || 'ここに「******@your-mail.com」を置く（またはタップ）'}
+              </div>
+            </div>
+            <button type="button" onclick="BrowserApp.requestSend()"
+              class="w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer ${LessonState.email ? 'bg-[#0067C0] hover:bg-[#00529B] text-white' : 'bg-[#CBD5E1] text-[#64748B]'}">
+              確認コードを送信
+            </button>`;
+        } else {
+          c.innerHTML = `
+            <div>
+              <div class="p-2.5 rounded-[8px] bg-[#FEF9C3] border border-[#CA8A04] text-xs text-[#854D0E] font-semibold mb-3">
+                ✉️ <strong>${LessonState.email}</strong> 宛に確認コードを送信しました。メールアプリを開いて6桁の番号を確認してください。
+              </div>
+              <label class="block text-xs font-bold text-[#334155] mb-1">確認コード（6桁の数字）</label>
+              <div onclick="BrowserApp.pasteCode()"
+                class="w-full p-3 rounded-[8px] border-2 text-center text-lg font-extrabold tracking-[0.2em] cursor-pointer ${LessonState.code ? 'bg-[#DCFCE7] border-[#16A34A] text-[#15803D]' : 'bg-[#F8FAFC] border-[#94A3B8] text-[#94A3B8]'}">
+                ${LessonState.code || '（未入力）'}
+              </div>
+              <button type="button" onclick="BrowserApp.pasteCode()"
+                class="mt-2.5 w-full py-2.5 px-3 rounded-[8px] border font-bold text-xs cursor-pointer flex items-center justify-center gap-1.5 ${SmartNaviCommon.state.clipboardText ? 'bg-[#EBF4FF] border-[#0067C0] text-[#0067C0]' : 'bg-[#F1F5F9] border-[#CBD5E1] text-[#64748B]'}">
+                <span>📋 一時メモから貼り付け</span>
+              </button>
+            </div>
+            <button type="button" onclick="BrowserApp.submitCode()"
+              class="w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer ${LessonState.code ? 'bg-[#16A34A] hover:bg-[#15803D] text-white' : 'bg-[#CBD5E1] text-[#64748B]'}">
+              認証する
+            </button>`;
+        }
+      }
+    };
+
+    const MailAppController = {
+      render() {
+        const inbox = document.getElementById('mailInboxView');
+        const detail = document.getElementById('mailDetailView');
+        const newBtn = document.getElementById('mailNewItemBtn');
+        newBtn.style.display = LessonState.newMessageArrived ? 'block' : 'none';
+        newBtn.setAttribute('aria-hidden', LessonState.newMessageArrived ? 'false' : 'true');
+        if (LessonState.mailViewMode === 'detail') {
+          inbox.style.display = 'none'; inbox.setAttribute('aria-hidden', 'true');
+          detail.style.display = 'flex'; detail.setAttribute('aria-hidden', 'false');
+        } else {
+          detail.style.display = 'none'; detail.setAttribute('aria-hidden', 'true');
+          inbox.style.display = 'flex'; inbox.setAttribute('aria-hidden', 'false');
+        }
+      },
+      openDetail() {
+        LessonState.mailViewMode = 'detail';
+        this.render();
+        if (LessonState.stepIndex === 3) advanceStep(4);
+      },
+      backToInbox() {
+        LessonState.mailViewMode = 'inbox';
+        this.render();
+      }
+    };
+
+    const LayerMap = {
+      render() {
+        const s = LessonState.activeScreen;
+        const badge = document.getElementById('layerStatusSummaryBadge');
+        const exp = document.getElementById('layerExplanationText');
+        const cBase = document.getElementById('layerCardBase');
+        const cWait = document.getElementById('layerCardWaiting');
+        const cOver = document.getElementById('layerCardOverlay');
+        const pBase = document.getElementById('layerPillBase');
+        const pWait = document.getElementById('layerPillWaiting');
+        const pOver = document.getElementById('layerPillOverlay');
+        [cBase, cWait, cOver].forEach(c => { c.style.backgroundColor = 'var(--bg-card-sub)'; c.style.borderColor = 'var(--border-subtle)'; });
+        [pBase, pWait, pOver].forEach(p => { p.style.display = 'none'; });
+        const waiting = LessonState.runningApps.includes('browser') && s !== 'browser';
+
+        if (s === 'browser') {
+          badge.textContent = '最前面：🌐 会員サイト';
+          exp.textContent = '机の上に「会員サイト」を広げて入力しています。別のアプリを開いても、この画面は閉じずに机の上で待機します。';
+          cWait.style.backgroundColor = 'var(--accent-tint)'; cWait.style.borderColor = 'var(--accent-primary)'; pWait.style.display = 'block';
+        } else if (s === 'mail') {
+          badge.textContent = '重ね表示：✉️ メール（下に会員サイト待機）';
+          exp.textContent = '待機中の「会員サイト」の上に、メールアプリが重なって開いています！番号をコピーしたら「□ 履歴」で下の会員サイトへ戻れます。';
+          cWait.style.backgroundColor = 'var(--waiting-bg)'; cWait.style.borderColor = 'var(--waiting-border)';
+          cOver.style.backgroundColor = 'var(--accent-tint)'; cOver.style.borderColor = 'var(--accent-primary)'; pOver.style.display = 'block';
+        } else {
+          badge.textContent = s === 'recents' ? '切り替え：□ アプリ履歴' : '最前面：🏠 ホーム / 🗂️ 一覧';
+          exp.textContent = waiting ? '「会員サイト」を机の上で待機させたまま移動しました。画面は消えていません。' : 'スマートフォンの玄関画面です。';
+          cBase.style.backgroundColor = 'var(--accent-tint)'; cBase.style.borderColor = 'var(--accent-primary)'; pBase.style.display = 'block';
+          if (waiting) { cWait.style.backgroundColor = 'var(--waiting-bg)'; cWait.style.borderColor = 'var(--waiting-border)'; }
+        }
+      }
+    };
+
+    function onCodeCopied(val) {
+      if (LessonState.stepIndex === 4 && val === EXPECTED_CODE) advanceStep(5);
+    }
+
+    function advanceStep(idx) {
+      if (idx > LessonState.stepIndex && idx < STEPS.length) {
+        LessonState.stepIndex = idx;
+        renderStepUI();
+      }
+    }
+
+    function renderStepUI() {
+      const total = STEPS.length;
+      const step = STEPS[LessonState.stepIndex] || STEPS[total - 1];
+      const counter = document.getElementById('lessonStepCounter');
+      if (LessonState.completed) {
+        counter.textContent = '🎉 全ステップ達成！';
+        counter.style.backgroundColor = 'var(--success-fg)'; counter.style.color = '#FFFFFF';
+        document.getElementById('stepInstructionTitle').textContent = 'おめでとうございます！メール認証をマスターしました';
+        document.getElementById('stepInstructionDesc').textContent = '「レッスン一覧」から他の練習にもぜひ挑戦してみてください。';
+        SmartNaviCommon.renderHintPanel(false, '');
+        SmartNaviCommon.renderTokenTray('tokenTrayContainer', [], null);
+      } else {
+        counter.textContent = `ステップ ${LessonState.stepIndex + 1} / ${total}`;
+        counter.style.backgroundColor = 'var(--accent-primary)'; counter.style.color = 'var(--accent-text)';
+        document.getElementById('stepInstructionTitle').textContent = step.title;
+        document.getElementById('stepInstructionDesc').textContent = step.desc;
+        SmartNaviCommon.renderHintPanel(LessonState.hintVisible, step.hint);
+        SmartNaviCommon.renderTokenTray('tokenTrayContainer', step.tokens, () => BrowserApp.applyEmailToken());
+      }
+      document.getElementById('stepProgressDots').innerHTML = STEPS.map((_, idx) => {
+        const done = LessonState.completed || idx < LessonState.stepIndex;
+        const curr = !LessonState.completed && idx === LessonState.stepIndex;
+        return `<div class="h-2 flex-1 rounded-full" style="background-color: ${done ? 'var(--success-border)' : curr ? 'var(--accent-primary)' : 'var(--border-subtle)'};"></div>`;
+      }).join('');
+    }
+
+    function toggleHint(force = null) {
+      LessonState.hintVisible = force !== null ? force : !LessonState.hintVisible;
+      renderStepUI();
+    }
+
+    function recoverToSafePoint() {
+      const step = STEPS[LessonState.stepIndex];
+      ScreenRouter.navigate((step && step.safeScreen) ? step.safeScreen : 'browser', 'zoom');
+    }
+
+    function onPrefUpdated() {
+      LayerMap.render();
+      SmartNaviCommon.clipboard.renderUI();
+    }
+
+    function resetLesson() {
+      LessonState.stepIndex = 0;
+      LessonState.completed = false;
+      LessonState.hintVisible = false;
+      LessonState.runningApps = ['browser'];
+      LessonState.mailViewMode = 'inbox';
+      LessonState.newMessageArrived = false;
+      LessonState.email = '';
+      LessonState.code = '';
+      LessonState.codeSent = false;
+      SmartNaviCommon.clipboard.clear();
+      renderStepUI();
+      ScreenRouter.navigate('browser', 'zoom');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SmartNaviCommon.initPreferences(onPrefUpdated);
+      resetLesson();
+    });
+  </script>
+</body>
+</html>
