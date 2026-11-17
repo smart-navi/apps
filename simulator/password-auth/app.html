@@ -3,266 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>パスワード認証・自動入力シミュレーター｜smart-navi</title>
-  <!-- Tailwind CSS -->
+  <title>パスワード自動入力ログインシミュレーター | smart-navi</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* =====================================================================
-       1. デザイントークン（ライトテーマ / ダークテーマ）
-       ===================================================================== */
-    :root,
-    [data-theme="light"] {
-      --bg-canvas: #F3F4F6;
-      --bg-header: #FFFFFF;
-      --bg-card: #FFFFFF;
-      --bg-card-sub: #F8FAFC;
-      --border-subtle: #E2E8F0;
-      --border-strong: #CBD5E1;
-
-      --text-primary: #0F172A;
-      --text-secondary: #475569;
-      --text-muted: #64748B;
-
-      --accent-primary: #0067C0;
-      --accent-hover: #00529B;
-      --accent-text: #FFFFFF;
-      --accent-tint: #EBF4FF;
-
-      --vault-primary: #B45309;
-      --vault-hover: #92400E;
-      --vault-tint: #FEF3C7;
-
-      --waiting-bg: #FEF9C3;
-      --waiting-border: #CA8A04;
-      --waiting-fg: #854D0E;
-
-      --success-bg: #DCFCE7;
-      --success-border: #16A34A;
-      --success-fg: #15803D;
-
-      --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.06);
-      --shadow-popover: 0 8px 20px rgba(15, 23, 42, 0.14);
-    }
-
-    [data-theme="dark"] {
-      --bg-canvas: #18181B;
-      --bg-header: #222226;
-      --bg-card: #27272A;
-      --bg-card-sub: #1F1F23;
-      --border-subtle: #3F3F46;
-      --border-strong: #52525B;
-
-      --text-primary: #F8FAFC;
-      --text-secondary: #CBD5E1;
-      --text-muted: #94A3B8;
-
-      --accent-primary: #4CC2FF;
-      --accent-hover: #38B2F0;
-      --accent-text: #090D16;
-      --accent-tint: #172E42;
-
-      --vault-primary: #F59E0B;
-      --vault-hover: #D97706;
-      --vault-tint: #3A2A10;
-
-      --waiting-bg: #3A3012;
-      --waiting-border: #EAB308;
-      --waiting-fg: #FEF08A;
-
-      --success-bg: #143320;
-      --success-border: #22C55E;
-      --success-fg: #86EFAC;
-
-      --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.35);
-      --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.55);
-    }
-
-    /* =====================================================================
-       2. ベーススタイル＆アクセシビリティ（文字サイズ切替・トグル）
-       ===================================================================== */
-    html {
-      font-size: 16px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    html.font-large {
-      font-size: 18.5px;
-    }
-
-    body {
-      background-color: var(--bg-canvas);
-      color: var(--text-primary);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      margin: 0;
-      transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .app-header {
-      background-color: var(--bg-header);
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .app-footer {
-      background-color: var(--bg-header);
-      border-top: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-    }
-
-    .ui-card {
-      background-color: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      box-shadow: var(--shadow-card);
-      transition: background-color 0.2s ease, border-color 0.2s ease;
-    }
-
-    .ui-card-sub {
-      background-color: var(--bg-card-sub);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-    }
-
-    .ui-btn {
-      background-color: var(--bg-card);
-      color: var(--text-primary);
-      border: 1px solid var(--border-subtle);
-      border-bottom: 2px solid var(--border-strong);
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.08s ease;
-    }
-    .ui-btn:hover {
-      background-color: var(--accent-tint);
-      border-color: var(--accent-primary);
-    }
-    .ui-btn:active {
-      transform: translateY(1px);
-    }
-
-    .ui-toggle {
-      position: relative;
-      width: 44px;
-      height: 22px;
-      border-radius: 9999px;
-      border: 1.5px solid var(--text-secondary);
-      background-color: transparent;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background-color 0.18s ease, border-color 0.18s ease;
-    }
-    .ui-toggle::after {
-      content: '';
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 13px;
-      height: 13px;
-      border-radius: 9999px;
-      background-color: var(--text-secondary);
-      transition: transform 0.18s ease, background-color 0.18s ease;
-    }
-    .ui-toggle[aria-checked="true"] {
-      background-color: var(--accent-primary);
-      border-color: var(--accent-primary);
-    }
-    .ui-toggle[aria-checked="true"]::after {
-      background-color: var(--accent-text);
-      transform: translateX(22px);
-    }
-
-    .ui-pill {
-      width: 4px;
-      min-height: 22px;
-      border-radius: 9999px;
-      background-color: var(--accent-primary);
-      flex-shrink: 0;
-    }
-
-    /* =====================================================================
-       3. バーチャルスマートフォン内 排他的画面切り替え（100%不透明）
-       ===================================================================== */
-    .phone-screen-panel {
-      display: none; /* 非アクティブ時は必ず display: none で完全非表示 */
-      flex-direction: column;
-      width: 100%;
-      height: 100%;
-      overflow-y: auto;
-    }
-
-    @keyframes screenEnterZoom {
-      from { transform: scale(0.96); opacity: 0.3; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    @keyframes screenEnterSlideUp {
-      from { transform: translateY(22px); opacity: 0.3; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .anim-zoom {
-      animation: screenEnterZoom 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    .anim-slide-up {
-      animation: screenEnterSlideUp 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-
-    /* ドロップゾーンの強調表示 */
-    .drop-target-active {
-      border-color: #B45309 !important;
-      background-color: #FEF3C7 !important;
-      box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.22);
-    }
-
-    .clean-scroll::-webkit-scrollbar {
-      width: 5px;
-    }
-    .clean-scroll::-webkit-scrollbar-thumb {
-      background: rgba(120, 120, 120, 0.4);
-      border-radius: 9999px;
-    }
-  </style>
+  <link rel="stylesheet" href="../assets/simulator-common.css" />
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- =====================================================================
-       上部ヘッダー（1テーマ特化：パスワード認証・自動入力シミュレーター）
-       ===================================================================== -->
   <header class="app-header sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-      <!-- タイトル＆テーマ表示 -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-[8px] flex items-center justify-center shrink-0"
-          style="background-color: var(--vault-primary); color: #FFFFFF;">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="4" y="11" width="16" height="10" rx="2"></rect>
-            <path d="M8 11V7a4 4 0 0 1 8 0v4" stroke-linecap="round"></path>
-            <circle cx="12" cy="16" r="1.5"></circle>
-          </svg>
+        <div class="w-10 h-10 rounded-[8px] flex items-center justify-center shrink-0 text-xl"
+          style="background-color: var(--accent-primary); color: var(--accent-text);">
+          🔑
         </div>
         <div>
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold"
-              style="background-color: var(--vault-tint); color: var(--vault-primary);">
-              実践レッスン・基本編 3
-            </span>
-            <h1 class="text-base sm:text-lg font-bold leading-tight" style="color: var(--text-primary);">
-              パスワード認証・自動入力シミュレーター
-            </h1>
-          </div>
-          <p class="text-xs mt-0.5" style="color: var(--text-secondary);">
-            小さな文字を1つずつ打たずに、端末に保存された「鍵の保管庫」から自動入力してログインする操作を練習できます
-          </p>
+          <nav aria-label="パンくずリスト" class="text-[11px] font-semibold flex items-center gap-1.5 mb-0.5"
+            style="color: var(--text-muted);">
+            <a href="../index.html" class="hover:underline" style="color: var(--accent-primary);">レッスン一覧</a><span>＞</span><a href="./index.html" class="hover:underline" style="color: var(--accent-primary);">パスワード自動入力</a><span>＞</span><span>練習画面</span>
+          </nav>
+          <h1 class="text-base sm:text-lg font-bold leading-tight" style="color: var(--text-primary);">
+            パスワード自動入力ログインシミュレーター
+          </h1>
         </div>
       </div>
 
-      <!-- 文字サイズ・配色・やり直しコントロール -->
       <div class="flex flex-wrap items-center gap-3 sm:gap-4">
         <div class="flex items-center gap-2">
           <span id="fontSizeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
             文字サイズ：標準
           </span>
-          <button type="button" id="fontToggleBtn" role="switch" aria-checked="false" onclick="toggleFontSize()"
+          <button type="button" id="fontToggleBtn" role="switch" aria-checked="false"
+            onclick="SmartNaviCommon.toggleFontSize(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
             class="ui-toggle" aria-label="文字サイズを標準と大きめで切り替える"></button>
         </div>
 
@@ -270,222 +41,83 @@
           <span id="themeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
             配色：ライト
           </span>
-          <button type="button" id="themeToggleBtn" role="switch" aria-checked="false" onclick="toggleTheme()"
+          <button type="button" id="themeToggleBtn" role="switch" aria-checked="false"
+            onclick="SmartNaviCommon.toggleTheme(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
             class="ui-toggle" aria-label="配色をライトとダークで切り替える"></button>
         </div>
-
-        <button type="button" onclick="resetCurrentLesson()"
-          class="ui-btn px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5">
-          <span>↺ 最初からやり直す</span>
-        </button>
+        <button type="button" onclick="resetLesson()" class="ui-btn px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5"><span>↺ 最初からやり直す</span></button>
       </div>
     </div>
   </header>
 
-  <!-- =====================================================================
-       メイン2カラム領域
-       ===================================================================== -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-
-    <!-- ===================================================================
-         左カラム：バーチャルスマートフォン（5カラム）
-         =================================================================== -->
+    <!-- 左カラム：バーチャルスマートフォン -->
     <section class="lg:col-span-5 flex flex-col items-center">
       <div class="ui-card w-full max-w-[440px] p-4 flex flex-col items-center">
-
         <div class="w-full flex items-center justify-between gap-2 mb-2.5">
-          <span class="text-xs font-bold" style="color: var(--text-secondary);">
-            📱 練習用スマートフォン
-          </span>
-          <button type="button" onclick="recoverToSafePoint()"
-            class="ui-btn px-2.5 py-1 text-xs flex items-center gap-1"
-            title="操作がわからなくなったときに現在のステップの画面へ戻します">
+          <span class="text-xs font-bold" style="color: var(--text-secondary);">📱 練習用スマートフォン</span>
+          <button type="button" onclick="recoverToSafePoint()" class="ui-btn px-2.5 py-1 text-xs flex items-center gap-1">
             <span>🧭 迷子になったら現在ステップへ戻る</span>
           </button>
         </div>
 
-        <!-- スマートフォン実機フレーム -->
         <div class="relative w-full max-w-[340px] h-[630px] bg-[#1E293B] rounded-[36px] p-2.5 shadow-xl border-[3px] border-[#334155] flex flex-col shrink-0">
-          <!-- 受話口スピーカー -->
           <div class="h-4 flex items-center justify-center gap-2 mb-1">
             <div class="w-12 h-1 bg-[#475569] rounded-full"></div>
             <div class="w-2 h-2 bg-[#334155] border border-[#64748B] rounded-full"></div>
           </div>
 
-          <!-- ディスプレイ画面枠 -->
           <div class="relative flex-1 w-full rounded-[24px] overflow-hidden flex flex-col justify-between bg-[#F1F5F9] text-[#0F172A] select-none">
-
-            <!-- 最上部ステータスバー ＋ 鍵保管庫インジケーター -->
             <div class="relative z-20 px-3 py-1.5 bg-[#0F172A] text-white flex items-center justify-between text-xs font-semibold shrink-0">
-              <div class="flex items-center gap-1.5">
-                <span>10:30</span>
-                <span class="px-1.5 py-0.2 rounded bg-[#1E293B] text-[#CBD5E1] text-[10px]">接続良好</span>
-              </div>
-              <!-- 鍵保管庫状態バッジ -->
-              <div id="phoneStatusVaultBadge"
-                class="px-2 py-0.5 rounded-full bg-[#B45309] text-white text-[10px] font-bold flex items-center gap-1 max-w-[185px] truncate">
-                <span>🔐 保存済みの鍵：1件</span>
-              </div>
+              <span>13:20</span>
+              <span class="px-2 py-0.5 rounded-full bg-[#1E293B] text-[#93C5FD] text-[10px] font-bold">🔐 鍵の自動入力：有効</span>
             </div>
 
-            <!-- =============================================================
-                 排他的スクリーンコンテナ（常に1つの画面だけが display: flex）
-                 ============================================================= -->
             <div class="relative flex-1 w-full overflow-hidden">
-
-              <!-- -----------------------------------------------------------
-                   画面1：ホーム画面（screenHome）
-                   ----------------------------------------------------------- -->
-              <div id="screenHome" aria-hidden="true"
-                class="phone-screen-panel clean-scroll p-3.5 justify-between"
+              <!-- 画面1：ホーム画面 -->
+              <div id="screenHome" aria-hidden="true" class="phone-screen-panel clean-scroll p-3.5 justify-between"
                 style="display: none; background-color: #DCE9F8;">
-                
-                <!-- 時計＆現在の練習ガイドカード -->
-                <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1] shadow-2xs">
+                <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1]">
                   <div class="flex items-center justify-between">
                     <div>
-                      <div class="text-2xl font-bold text-[#0F172A]">10:30</div>
+                      <div class="text-2xl font-bold text-[#0F172A]">13:20</div>
                       <div class="text-xs font-semibold text-[#475569]">11月17日（火）・晴れ</div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-[#EBF4FF] text-[#0067C0] text-xs font-bold">
-                      ホーム画面（玄関）
-                    </span>
+                    <span class="px-2.5 py-1 rounded-full bg-[#EBF4FF] text-[#0067C0] text-xs font-bold">ホーム画面</span>
                   </div>
                 </div>
 
-                <!-- 主要アプリアイコングリッド -->
                 <div class="bg-white rounded-[10px] p-3 border border-[#CBD5E1]">
-                  <div class="text-xs font-bold text-[#475569] mb-2.5 text-center">
-                    開きたいアプリを押してください
-                  </div>
+                  <div class="text-xs font-bold text-[#475569] mb-2.5 text-center">アプリ一覧</div>
                   <div class="grid grid-cols-3 gap-2.5">
-                    <!-- 会員サイト（ブラウザ） -->
-                    <button type="button" onclick="ScreenRouter.openApp('browser')"
-                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] border border-transparent hover:border-[#0067C0]/30 cursor-pointer">
-                      <span id="badgeHomeBrowser" aria-hidden="true" style="display: none;"
-                        class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-[#CA8A04] text-white text-[9px] font-bold">待機中</span>
-                      <span class="w-11 h-11 rounded-[10px] bg-[#0067C0] text-white flex items-center justify-center text-xl shadow-2xs">🌐</span>
+                    <button type="button" onclick="ScreenRouter.navigate('browser', 'zoom')"
+                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
+                      <span class="w-11 h-11 rounded-[10px] bg-[#0067C0] text-white flex items-center justify-center text-xl">🌐</span>
                       <span class="text-xs font-bold text-[#0F172A]">会員サイト</span>
                     </button>
 
-                    <!-- 鍵の保管庫（パスワード管理） -->
-                    <button type="button" onclick="ScreenRouter.openApp('vault')"
-                      class="relative flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#FEF3C7] border border-transparent hover:border-[#B45309]/40 cursor-pointer">
-                      <span class="w-11 h-11 rounded-[10px] bg-[#B45309] text-white flex items-center justify-center text-xl shadow-2xs">🔐</span>
+                    <button type="button" onclick="ScreenRouter.navigate('vault', 'zoom')"
+                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
+                      <span class="w-11 h-11 rounded-[10px] bg-[#D97706] text-white flex items-center justify-center text-xl">🔐</span>
                       <span class="text-xs font-bold text-[#0F172A]">鍵の保管庫</span>
                     </button>
 
-                    <!-- メール -->
-                    <button type="button" onclick="ScreenRouter.showInfoToast('今回のログイン練習では「会員サイト」と「鍵の保管庫」を使います。')"
+                    <button type="button" onclick="ScreenRouter.navigate('browser', 'zoom')"
                       class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
                       <span class="w-11 h-11 rounded-[10px] bg-[#0284C7] text-white flex items-center justify-center text-xl">✉️</span>
                       <span class="text-xs font-bold text-[#0F172A]">メール</span>
                     </button>
-
-                    <!-- 電話 -->
-                    <button type="button" onclick="ScreenRouter.showInfoToast('今回のログイン練習では「会員サイト」と「鍵の保管庫」を使います。')"
-                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
-                      <span class="w-11 h-11 rounded-[10px] bg-[#15803D] text-white flex items-center justify-center text-xl">📞</span>
-                      <span class="text-xs font-bold text-[#0F172A]">電話</span>
-                    </button>
-
-                    <!-- カメラ -->
-                    <button type="button" onclick="ScreenRouter.showInfoToast('今回のログイン練習では「会員サイト」と「鍵の保管庫」を使います。')"
-                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#F8FAFC] cursor-pointer">
-                      <span class="w-11 h-11 rounded-[10px] bg-[#334155] text-white flex items-center justify-center text-xl">📷</span>
-                      <span class="text-xs font-bold text-[#0F172A]">カメラ</span>
-                    </button>
-
-                    <!-- アプリ一覧を開く -->
-                    <button type="button" onclick="ScreenRouter.navigate('drawer')"
-                      class="flex flex-col items-center gap-1.5 p-2 rounded-[8px] hover:bg-[#EBF4FF] cursor-pointer">
-                      <span class="w-11 h-11 rounded-[10px] bg-[#64748B] text-white flex items-center justify-center text-xl">🗂️</span>
-                      <span class="text-xs font-bold text-[#0F172A]">全アプリ</span>
-                    </button>
                   </div>
                 </div>
 
-                <!-- ホーム画面内インフォメッセージ（排他制御） -->
-                <div id="homeToastBox" aria-hidden="true" style="display: none;"
-                  class="bg-[#0F172A] text-white rounded-[8px] p-2.5 text-xs font-semibold text-center">
-                </div>
-
-                <!-- 下部案内バー -->
-                <div class="bg-white/95 rounded-[8px] p-2.5 border border-[#CBD5E1] text-center">
-                  <button type="button" onclick="ScreenRouter.navigate('drawer')"
-                    class="text-xs font-bold text-[#0067C0] hover:underline cursor-pointer">
-                    ↑ ここを押すと「アプリ一覧の引き出し」が開きます
-                  </button>
+                <div class="bg-white/95 rounded-[8px] p-2.5 border border-[#CBD5E1] text-center text-xs font-bold text-[#334155]">
+                  🔐 「鍵の保管庫」に保存したIDとパスワードを自動入力できます
                 </div>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面2：アプリ一覧ドロワー（screenDrawer）
-                   ----------------------------------------------------------- -->
-              <div id="screenDrawer" aria-hidden="true"
-                class="phone-screen-panel clean-scroll p-3.5 justify-between"
-                style="display: none; background-color: #F8FAFC;">
-                <div>
-                  <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#E2E8F0]">
-                    <h2 class="font-bold text-sm text-[#0F172A]">🗂️ アプリ一覧（下の引き出し）</h2>
-                    <button type="button" onclick="ScreenRouter.navigate('home')"
-                      class="px-2 py-1 rounded bg-[#E2E8F0] text-xs font-bold text-[#0F172A] cursor-pointer">
-                      閉じる
-                    </button>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-2.5">
-                    <button type="button" onclick="ScreenRouter.openApp('browser')"
-                      class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
-                      <span class="w-9 h-9 rounded-[8px] bg-[#0067C0] text-white flex items-center justify-center text-lg shrink-0">🌐</span>
-                      <div>
-                        <div class="font-bold text-xs text-[#0F172A]">会員サイト</div>
-                        <div class="text-[10px] text-[#475569]">ログイン画面</div>
-                      </div>
-                    </button>
-
-                    <button type="button" onclick="ScreenRouter.openApp('vault')"
-                      class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#B45309] text-left cursor-pointer">
-                      <span class="w-9 h-9 rounded-[8px] bg-[#B45309] text-white flex items-center justify-center text-lg shrink-0">🔐</span>
-                      <div>
-                        <div class="font-bold text-xs text-[#0F172A]">鍵の保管庫</div>
-                        <div class="text-[10px] text-[#475569]">保存パスワード</div>
-                      </div>
-                    </button>
-
-                    <button type="button" onclick="ScreenRouter.navigate('recents')"
-                      class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
-                      <span class="w-9 h-9 rounded-[8px] bg-[#475569] text-white flex items-center justify-center text-lg shrink-0">□</span>
-                      <div>
-                        <div class="font-bold text-xs text-[#0F172A]">履歴一覧</div>
-                        <div class="text-[10px] text-[#475569]">起動中アプリ</div>
-                      </div>
-                    </button>
-
-                    <button type="button" onclick="ScreenRouter.navigate('home')"
-                      class="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-white border border-[#CBD5E1] hover:border-[#0067C0] text-left cursor-pointer">
-                      <span class="w-9 h-9 rounded-[8px] bg-[#64748B] text-white flex items-center justify-center text-lg shrink-0">🏠</span>
-                      <div>
-                        <div class="font-bold text-xs text-[#0F172A]">ホーム</div>
-                        <div class="text-[10px] text-[#475569]">最初の玄関</div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                <button type="button" onclick="ScreenRouter.navigate('home')"
-                  class="w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs cursor-pointer">
-                  ホーム画面へ戻る
-                </button>
-              </div>
-
-              <!-- -----------------------------------------------------------
-                   画面3：会員サイト画面（screenBrowser）
-                   ----------------------------------------------------------- -->
-              <div id="screenBrowser" aria-hidden="true"
-                class="phone-screen-panel clean-scroll"
-                style="display: none; background-color: #FFFFFF;">
-                <!-- ブラウザ上部バー -->
+              <!-- 画面2：会員ログイン画面 -->
+              <div id="screenBrowser" aria-hidden="false" class="phone-screen-panel clean-scroll"
+                style="display: flex; background-color: #FFFFFF;">
                 <div class="px-3 py-2 bg-[#0067C0] text-white flex items-center justify-between shrink-0">
                   <div class="flex items-center gap-1.5">
                     <span class="text-sm">🌐</span>
@@ -493,998 +125,475 @@
                   </div>
                   <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">安全な通信</span>
                 </div>
-
-                <!-- 会員サイト本文 -->
-                <div id="browserContentArea" class="flex-1 p-3.5 flex flex-col justify-between text-[#0F172A]">
-                  <!-- JSで描画 -->
-                </div>
+                <div id="browserContentArea" class="flex-1 p-3.5 flex flex-col justify-between text-[#0F172A]"></div>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面4：パスワード管理・鍵の保管庫アプリ画面（screenVault）
-                   ----------------------------------------------------------- -->
-              <div id="screenVault" aria-hidden="true"
-                class="phone-screen-panel clean-scroll"
-                style="display: none; background-color: #FFFFFF;">
-                <!-- 保管庫上部バー -->
-                <div class="px-3 py-2 bg-[#B45309] text-white flex items-center justify-between shrink-0">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-sm">🔐</span>
-                    <span class="font-bold text-xs">端末の鍵の保管庫（パスワード管理）</span>
-                  </div>
-                  <span class="text-[10px] px-2 py-0.5 rounded bg-white/20 font-semibold">保護中</span>
-                </div>
-
-                <div class="flex-1 p-3.5 flex flex-col justify-between text-[#0F172A]">
-                  <div>
-                    <div class="p-2.5 rounded-[8px] bg-[#FEF3C7] border border-[#F59E0B] text-xs text-[#92400E] font-semibold mb-3">
-                      スマートフォンの中に保存されているログイン情報の一覧です。紙にメモしなくても、ログイン画面からいつでも呼び出せます。
-                    </div>
-
-                    <div class="text-xs font-bold text-[#475569] mb-2">保存済みのサイト情報（1件）</div>
-                    <div class="p-3 rounded-[10px] bg-[#F8FAFC] border-2 border-[#B45309] space-y-2">
-                      <div class="flex items-center justify-between">
-                        <span class="font-bold text-xs text-[#0F172A]">🌐 暮らしの会員サイト</span>
-                        <span class="px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] text-[10px] font-bold">自動入力対応</span>
-                      </div>
-                      <div class="text-xs border-t border-[#E2E8F0] pt-2 space-y-1">
-                        <div><span class="text-[#64748B] font-bold">会員ID：</span><span class="font-bold">tanaka_hanako</span></div>
-                        <div><span class="text-[#64748B] font-bold">パスワード：</span><span class="font-bold">hana2026（保存済み）</span></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button type="button" onclick="ScreenRouter.openApp('browser')"
-                    class="w-full py-2.5 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] text-white font-bold text-xs cursor-pointer">
-                    🌐 会員サイトのログイン画面へ戻る
-                  </button>
-                </div>
-              </div>
-
-              <!-- -----------------------------------------------------------
-                   画面5：アプリ切り替え履歴画面（screenRecents）
-                   ----------------------------------------------------------- -->
-              <div id="screenRecents" aria-hidden="true"
-                class="phone-screen-panel clean-scroll p-3.5 justify-between text-white"
-                style="display: none; background-color: #1E293B;">
+              <!-- 画面3：鍵の保管庫（パスワード管理画面） -->
+              <div id="screenVault" aria-hidden="true" class="phone-screen-panel clean-scroll p-3.5 justify-between"
+                style="display: none; background-color: #FFFBEB;">
                 <div>
-                  <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-white/15">
-                    <h2 class="font-bold text-sm">□ 開いているアプリの履歴</h2>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/15">切り替え画面</span>
+                  <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#FDE68A]">
+                    <h2 class="font-bold text-sm text-[#92400E]">🔐 スマホ内の「鍵の保管庫」</h2>
+                    <button type="button" onclick="ScreenRouter.navigate('browser', 'zoom')"
+                      class="px-2.5 py-1 rounded bg-[#0067C0] text-white text-xs font-bold cursor-pointer">ログイン画面へ戻る</button>
                   </div>
-                  <p class="text-xs text-[#CBD5E1] mb-3 leading-relaxed">
-                    開いているアプリの一覧です。戻りたい画面のカードを押してください。
+                  <p class="text-xs text-[#78350F] leading-relaxed mb-3">
+                    一度保存したIDとパスワードは、このようにスマホの中の安全な金庫に記録されています。紙にメモしなくても自動入力で呼び出せます。
                   </p>
-
-                  <div id="recentsCardsContainer" class="space-y-2.5">
-                    <!-- JSで描画 -->
+                  <div class="p-3 rounded-[10px] bg-white border border-[#F59E0B] space-y-2 text-xs">
+                    <div class="font-bold text-[#0F172A] text-sm">🌐 暮らしの会員サイト</div>
+                    <div class="flex justify-between py-1 border-b border-[#F1F5F9]">
+                      <span class="text-[#64748B]">会員ID：</span>
+                      <span class="font-bold text-[#0F172A]">tanaka_hanako</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                      <span class="text-[#64748B]">パスワード：</span>
+                      <span class="font-bold text-[#15803D]">hana2026（保護済み）</span>
+                    </div>
                   </div>
                 </div>
-
-                <button type="button" onclick="ScreenRouter.navigate('home')"
-                  class="mt-3 w-full py-2.5 rounded-[8px] bg-white/15 hover:bg-white/25 text-white font-bold text-xs cursor-pointer">
-                  ○ ホーム画面へ戻る
+                <button type="button" onclick="ScreenRouter.navigate('browser', 'zoom')"
+                  class="w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs cursor-pointer">
+                  会員サイトのログイン画面へ戻る
                 </button>
               </div>
 
-              <!-- -----------------------------------------------------------
-                   画面6：モーダル確認ダイアログ（modalConfirmDialog）
-                   ※ 100%不透明・排他的表示（閉じたら display: none & aria-hidden="true"）
-                   ----------------------------------------------------------- -->
+              <!-- 画面4：確認ダイアログ -->
               <div id="modalConfirmDialog" aria-hidden="true" role="dialog" aria-modal="true"
                 class="phone-screen-panel p-4 justify-center items-center"
                 style="display: none; background-color: #0F172A;">
-                <div class="w-full bg-white text-[#0F172A] rounded-[12px] p-4 border-2 border-[#B45309] shadow-lg">
+                <div class="w-full bg-white text-[#0F172A] rounded-[12px] p-4 border-2 border-[#0067C0] shadow-lg">
                   <div class="flex items-center gap-2 mb-2">
-                    <span class="w-7 h-7 rounded-full bg-[#FEF3C7] text-[#B45309] flex items-center justify-center font-bold text-sm">🔑</span>
+                    <span class="w-7 h-7 rounded-full bg-[#EBF4FF] text-[#0067C0] flex items-center justify-center font-bold text-sm">🔑</span>
                     <h3 id="confirmDialogTitle" class="font-bold text-sm text-[#0F172A]">自動入力の確認</h3>
                   </div>
-                  <p id="confirmDialogMessage" class="text-xs text-[#334155] leading-relaxed mb-4">
-                    端末に保存されている会員IDとパスワードを自動入力しますか？
-                  </p>
+                  <p id="confirmDialogMessage" class="text-xs text-[#334155] leading-relaxed mb-4"></p>
                   <div class="grid grid-cols-2 gap-2.5">
-                    <button type="button" onclick="ConfirmDialogController.reject()"
-                      class="py-2.5 px-3 rounded-[8px] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] font-bold text-xs text-[#334155] cursor-pointer">
-                      いいえ
-                    </button>
-                    <button type="button" onclick="ConfirmDialogController.accept()"
-                      class="py-2.5 px-3 rounded-[8px] bg-[#B45309] hover:bg-[#92400E] text-white font-bold text-xs cursor-pointer">
-                      はい（自動入力）
-                    </button>
+                    <button type="button" onclick="ConfirmDialog.reject()"
+                      class="py-2.5 px-3 rounded-[8px] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] font-bold text-xs text-[#334155] cursor-pointer">いいえ</button>
+                    <button type="button" onclick="ConfirmDialog.accept()"
+                      class="py-2.5 px-3 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] text-white font-bold text-xs cursor-pointer">はい（自動入力）</button>
                   </div>
                 </div>
               </div>
-
             </div>
 
-            <!-- =============================================================
-                 最下部 3ボタンナビゲーションバー（戻る◁・ホーム○・履歴□）
-                 ============================================================= -->
+            <!-- 下部3ボタンナビゲーション -->
             <div class="relative z-20 bg-[#0F172A] text-white px-2 py-1.5 flex items-center justify-around border-t border-white/15 shrink-0">
               <button type="button" onclick="ScreenRouter.pressBack()"
-                class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 active:bg-white/25 flex flex-col items-center justify-center cursor-pointer">
+                class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 flex flex-col items-center justify-center cursor-pointer">
                 <span class="text-sm font-bold leading-none">◁</span>
                 <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">戻る</span>
               </button>
-
               <button type="button" onclick="ScreenRouter.pressHome()"
                 class="flex-1 py-1 mx-1 rounded-[8px] bg-[#0067C0] hover:bg-[#00529B] flex flex-col items-center justify-center cursor-pointer">
                 <span class="text-sm font-bold leading-none">○</span>
                 <span class="text-[10px] font-bold mt-1 text-white">ホーム</span>
               </button>
-
-              <button type="button" onclick="ScreenRouter.pressRecents()"
-                class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 active:bg-white/25 flex flex-col items-center justify-center cursor-pointer">
-                <span class="text-sm font-bold leading-none">□</span>
-                <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">履歴</span>
+              <button type="button" onclick="ScreenRouter.navigate('vault', 'zoom')"
+                class="flex-1 py-1 mx-1 rounded-[8px] hover:bg-white/15 flex flex-col items-center justify-center cursor-pointer">
+                <span class="text-sm font-bold leading-none">🔐</span>
+                <span class="text-[10px] font-semibold mt-1 text-[#E2E8F0]">鍵保管庫</span>
               </button>
             </div>
-
           </div>
         </div>
-
-        <!-- スマホ下部補助ボタン -->
-        <button type="button" onclick="ScreenRouter.navigate('drawer')"
-          class="ui-btn w-full mt-3 py-2 px-3 text-xs flex items-center justify-center gap-1.5">
-          <span>↑ 下から引き出す（アプリ一覧を開く）</span>
-        </button>
       </div>
     </section>
 
-    <!-- ===================================================================
-         右カラム：ステップ案内・立体階層マップ・共通パーツトレイ（7カラム）
-         =================================================================== -->
+    <!-- 右カラム：ステップ案内・立体階層マップ・共通パーツトレイ -->
     <section class="lg:col-span-7 flex flex-col gap-4">
-
-      <!-- 1. 現在のステップ案内パネル（優しいガイド＋排他ヒント表示） -->
-      <div class="ui-card p-4 sm:p-5 border-l-4" style="border-left-color: var(--vault-primary);">
+      <div class="ui-card p-4 sm:p-5 border-l-4" style="border-left-color: var(--accent-primary);">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div class="flex items-center gap-2">
             <span id="lessonStepCounter" class="px-2.5 py-0.5 rounded-full text-xs font-bold"
-              style="background-color: var(--vault-primary); color: #FFFFFF;">
-              ステップ 1 / 5
-            </span>
-            <h2 id="lessonTitleDisplay" class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">
-              パスワード認証・自動入力（保存済みの鍵を使う）
-            </h2>
+              style="background-color: var(--accent-primary); color: var(--accent-text);">ステップ 1 / 5</span>
+            <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">パスワード自動入力ログイン</h2>
           </div>
-
-          <button type="button" id="toggleStepHintBtn" aria-expanded="false" onclick="toggleStepHint()"
-            class="ui-btn px-3 py-1.5 text-xs flex items-center gap-1">
-            <span>💡 ヒントを見る</span>
-          </button>
+          <button type="button" id="toggleStepHintBtn" aria-expanded="false" onclick="toggleHint()"
+            class="ui-btn px-3 py-1.5 text-xs flex items-center gap-1"><span>💡 ヒントを見る</span></button>
         </div>
 
-        <!-- 現在の操作指示 -->
         <div class="ui-card-sub p-3.5">
-          <div id="stepInstructionTitle" class="font-bold text-sm sm:text-base mb-1" style="color: var(--vault-primary);">
-            1. 会員サイトの入力欄をタップして保存済みの鍵を呼び出しましょう
-          </div>
-          <p id="stepInstructionDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);">
-            スマホ画面にある「会員ID」の枠をタップしてください。キーボードで打つ代わりに、スマホに保存済みの鍵候補が呼び出されます。
-          </p>
+          <div id="stepInstructionTitle" class="font-bold text-sm sm:text-base mb-1" style="color: var(--accent-primary);"></div>
+          <p id="stepInstructionDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);"></p>
         </div>
 
-        <!-- 排他的ヒントパネル（初期・非アクティブ時は display: none & aria-hidden="true"） -->
-        <div id="stepHintPanel" aria-hidden="true" style="display: none;"
-          class="mt-3 p-3.5 rounded-[8px] border"
-          style="background-color: var(--vault-tint); border-color: var(--vault-primary);">
+        <div id="stepHintPanel" aria-hidden="true" style="display: none;" class="mt-3 p-3.5 rounded-[8px] border"
+          style="background-color: var(--accent-tint); border-color: var(--accent-primary);">
           <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-xs" style="color: var(--vault-primary);">💡 操作のヒント</span>
-            <button type="button" onclick="toggleStepHint(false)"
-              class="text-xs font-bold px-2 py-0.5 rounded cursor-pointer" style="color: var(--text-secondary);">
-              ✕ 閉じる
-            </button>
+            <span class="font-bold text-xs" style="color: var(--accent-primary);">💡 操作のヒント</span>
+            <button type="button" onclick="toggleHint(false)" class="text-xs font-bold px-2 py-0.5 rounded cursor-pointer" style="color: var(--text-secondary);">✕ 閉じる</button>
           </div>
-          <p id="stepHintText" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);">
-            ヒント内容
-          </p>
+          <p id="stepHintText" class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);"></p>
         </div>
 
-        <!-- ステップ進行ドットバー -->
-        <div id="stepProgressDots" class="flex items-center gap-1.5 mt-3">
-          <!-- JSで描画 -->
-        </div>
+        <div id="stepProgressDots" class="flex items-center gap-1.5 mt-3"></div>
       </div>
 
-      <!-- 2. スマホ立体階層マップ（保管庫と会員サイトの連携構造の可視化） -->
+      <!-- 立体階層マップ -->
       <div class="ui-card p-4 sm:p-5">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">
-            🗺️ スマホ立体階層マップ（会員サイトと「鍵の保管庫」の関係）
-          </h2>
+          <h2 class="font-bold text-sm sm:text-base" style="color: var(--text-primary);">🗺️ スマホ立体階層マップ（ログイン画面と鍵の保管庫）</h2>
           <span id="layerStatusSummaryBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full"
-            style="background-color: var(--accent-tint); color: var(--accent-primary);">
-            最前面：会員サイト
-          </span>
+            style="background-color: var(--accent-tint); color: var(--accent-primary);">最前面：会員サイト</span>
         </div>
-
-        <p id="layerExplanationText" class="text-xs sm:text-sm leading-relaxed mb-3" style="color: var(--text-secondary);">
-          パスワードは自分で暗記したり紙のメモを探したりしなくても、スマホの奥にある「鍵の保管庫」が安全に記憶し、必要なときだけ自動入力してくれます。
-        </p>
-
-        <!-- 3層構造ビジュアルカード -->
+        <p id="layerExplanationText" class="text-xs sm:text-sm leading-relaxed mb-3" style="color: var(--text-secondary);"></p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <!-- 層A：基本の玄関（ホーム／アプリ一覧） -->
-          <div id="layerCardBase" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
-            <span id="layerPillBase" class="ui-pill mt-0.5" style="display: none;"></span>
+          <div id="layerCardBrowser" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillBrowser" class="ui-pill mt-0.5" style="display: none;"></span>
             <div class="flex-1">
-              <div class="text-[11px] font-bold" style="color: var(--text-muted);">土台の玄関</div>
-              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🏠 ホーム / 🗂️ 一覧</div>
-              <div id="layerSubBase" class="text-[11px] mt-1" style="color: var(--text-secondary);">「○ ホーム」でいつでも帰還</div>
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">表側の手続き画面</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🌐 会員ログイン画面</div>
+              <div class="text-[11px] mt-1" style="color: var(--text-secondary);">IDとパスワードを入れる場所</div>
             </div>
           </div>
-
-          <!-- 層B：作業中の画面（会員サイト） -->
-          <div id="layerCardMain" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
-            <span id="layerPillMain" class="ui-pill mt-0.5" style="display: none;"></span>
-            <div class="flex-1">
-              <div class="text-[11px] font-bold" style="color: var(--text-muted);">ログインする画面</div>
-              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🌐 会員サイト</div>
-              <div id="layerSubMain" class="text-[11px] mt-1" style="color: var(--text-secondary);">現在操作中</div>
-            </div>
-          </div>
-
-          <!-- 層C：裏で支える保管庫（鍵の保管庫） -->
           <div id="layerCardVault" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
             <span id="layerPillVault" class="ui-pill mt-0.5" style="display: none;"></span>
             <div class="flex-1">
-              <div class="text-[11px] font-bold" style="color: var(--text-muted);">裏側で支える道具箱</div>
-              <div class="font-bold text-xs sm:text-sm mt-0.5" style="color: var(--text-primary);">🔐 鍵の保管庫</div>
-              <div id="layerSubVault" class="text-[11px] mt-1" style="color: var(--text-secondary);">IDとパスワードを記憶中</div>
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">裏側の記憶装置</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🔐 鍵の保管庫</div>
+              <div class="text-[11px] mt-1" style="color: var(--text-secondary);">保存済みの鍵を呼び出す</div>
+            </div>
+          </div>
+          <div id="layerCardHome" class="p-3 rounded-[8px] border flex items-start gap-2 transition">
+            <span id="layerPillHome" class="ui-pill mt-0.5" style="display: none;"></span>
+            <div class="flex-1">
+              <div class="text-[11px] font-bold" style="color: var(--text-muted);">基準の玄関</div>
+              <div class="font-bold text-xs sm:text-sm mt-0.5">🏠 ホーム画面</div>
+              <div class="text-[11px] mt-1" style="color: var(--text-secondary);">いつでも戻れる出発点</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 3. 共通パーツトレイ ＆ 保存済みの鍵モニター -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <!-- 共通パーツトレイ（7カラム） -->
-        <div class="md:col-span-7 ui-card p-4">
-          <div class="flex items-center justify-between mb-2">
-            <h2 class="font-bold text-sm" style="color: var(--text-primary);">
-              🧩 共通パーツトレイ（タップまたはドラッグで自動入力）
-            </h2>
-          </div>
-          <p class="text-xs mb-3" style="color: var(--text-secondary);">
-            英語や数字を1文字ずつ打つ代わりに、下の「保存済みの鍵」を押すだけでIDとパスワードが両方入ります。
-          </p>
-          <div id="tokenTrayContainer" class="flex flex-wrap gap-2">
-            <!-- TokenTrayEngine が描画 -->
-          </div>
-        </div>
-
-        <!-- 保存済みの鍵モニター（5カラム） -->
-        <div class="md:col-span-5 ui-card p-4 flex flex-col justify-between">
-          <div>
-            <h2 class="font-bold text-sm mb-1" style="color: var(--text-primary);">
-              🔐 鍵の保管庫ステータス
-            </h2>
-            <p class="text-xs mb-2.5" style="color: var(--text-secondary);">
-              このサイトに紐づく保存済みアカウント情報です。
-            </p>
-          </div>
-
-          <div id="vaultMonitorBox" class="p-3 rounded-[8px] border text-left text-xs space-y-1"
-            style="background-color: var(--vault-tint); border-color: var(--vault-primary);">
-            <div class="font-bold" style="color: var(--vault-primary);">✓ 保存済みの鍵が利用可能</div>
-            <div style="color: var(--text-primary);">ID：<strong>tanaka_hanako</strong></div>
-            <div style="color: var(--text-primary);">パスワード：<strong>••••••••（保護済み）</strong></div>
-          </div>
-        </div>
+      <!-- 共通パーツトレイ -->
+      <div class="ui-card p-4 sm:p-5">
+        <h2 class="font-bold text-sm sm:text-base mb-1.5" style="color: var(--text-primary);">🧩 共通パーツトレイ（保存済みの鍵を呼び出す）</h2>
+        <p class="text-xs sm:text-sm mb-3" style="color: var(--text-secondary);">文字を1文字ずつ打つ代わりに、スマホが覚えている会員IDやパスワードのパーツを押して入力できます。</p>
+        <div id="tokenTrayContainer" class="flex flex-wrap gap-2.5"></div>
       </div>
-
     </section>
   </main>
 
-  <!-- =====================================================================
-       下部フッター（smart-navi コピーライト表記）
-       ===================================================================== -->
-  <footer class="app-footer mt-auto py-4 px-4 sm:px-6 text-center">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm">
-      <span class="font-semibold">実践レッスン：パスワード認証・自動入力（保存済みの鍵を使う）</span>
-      <span class="font-bold tracking-wide">&copy; smart-navi</span>
+  <footer class="app-footer mt-auto py-4 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+      <div>smart-navi スマートフォン操作練習シミュレーター</div>
+      <div class="font-semibold">© 2026 smart-navi</div>
     </div>
   </footer>
 
-  <!-- =====================================================================
-       JavaScript：共通アセット・パスワード認証レッスンエンジン
-       ===================================================================== -->
+  <script src="../assets/simulator-common.js"></script>
   <script>
-    // =====================================================================
-    // A. パスワード認証レッスン定義データ（PASSWORD_AUTH_LESSON）
-    // =====================================================================
-    const PASSWORD_AUTH_LESSON = {
-      id: 'password_auth',
-      title: 'パスワード認証・自動入力（保存済みの鍵を使う）',
-      savedId: 'tanaka_hanako',
-      savedPasswordPlain: 'hana2026',
-      steps: [
-        {
-          title: '1. 会員サイトの「会員ID」欄をタップして鍵を呼び出しましょう',
-          desc: 'スマホ画面にある「会員ID」の入力枠をタップしてください。キーボードで文字を打つ代わりに、スマホに保存済みの鍵候補が現れます。',
-          hint: '「ここを押して保存済みの鍵を呼び出す」と書かれた枠を1回タップしてください。',
-          safeScreen: 'browser',
-          tokens: [
-            { id: 'tok_autofill_key', label: '🔑 保存済みの鍵（tanaka_hanako）', value: 'tanaka_hanako', targetField: 'autofillAll', icon: '🔑' }
-          ]
-        },
-        {
-          title: '2. 「保存済みの鍵を使う」を押して自動入力を呼び出しましょう',
-          desc: 'スマホ画面に現れた「🔑 保存済みの鍵を使う（自動入力）」ボタン、または下の共通パーツトレイの鍵を押してください。',
-          hint: '黄色い枠の中に現れた「🔑 保存済みの鍵を使う（自動入力）」ボタンを押すと確認画面が出ます。',
-          safeScreen: 'browser',
-          tokens: [
-            { id: 'tok_autofill_key', label: '🔑 保存済みの鍵（tanaka_hanako）', value: 'tanaka_hanako', targetField: 'autofillAll', icon: '🔑' }
-          ]
-        },
-        {
-          title: '3. 確認ダイアログで「はい（自動入力）」を押しましょう',
-          desc: '「会員IDとパスワードを自動入力しますか？」という確認画面で「はい（自動入力）」を押してください。2つの欄が同時に埋まります。',
-          hint: '確認画面の茶色い「はい（自動入力）」ボタンを押すと、IDとパスワードが一瞬で入力されます。',
-          safeScreen: 'browser',
-          tokens: []
-        },
-        {
-          title: '4. 「👁️ 中身を見る」を押してパスワードが正しく入ったか確認しましょう',
-          desc: 'パスワード欄の「●●●●●●●●」が合っているか安心するため、横にある「👁️ 中身を見る」ボタンを押して確認してください。',
-          hint: 'パスワード欄の右側にある「👁️ 中身を見る」ボタンを押すと、「hana2026」と正しく入っていることを確認できます。',
-          safeScreen: 'browser',
-          tokens: []
-        },
-        {
-          title: '5. 「ログインする」ボタンを押して会員ページへ入りましょう',
-          desc: 'IDとパスワードの両方が正しく入ったことを確認し、一番下の青い「ログインする」ボタンを押して完了です！',
-          hint: 'スマホ画面一番下の「ログインする」ボタンを押すとログイン完了画面になります。',
-          safeScreen: 'browser',
-          tokens: []
-        }
-      ]
-    };
+    const LESSON_SLUG = 'password-auth';
 
-    // =====================================================================
-    // B. アプリケーション一元状態（AppState）
-    // =====================================================================
-    const AppState = {
-      theme: 'light',
-      fontLarge: false,
+    const STEPS = [
+      {
+        title: '1. 「会員ID」の入力枠をタップしましょう',
+        desc: 'スマホのログイン画面にある「ここを押して会員IDを選択」の枠をタップして、保存済みの鍵を呼び出しましょう。',
+        hint: 'スマホ画面の「会員ID」の枠を押すと、下に保存済みのID候補が現れます。',
+        safeScreen: 'browser',
+        tokens: [{ id: 'tok_id', label: '🔑 保存済みID：tanaka_hanako', icon: '🔑' }]
+      },
+      {
+        title: '2. 保存済みの会員IDパーツをセットしましょう',
+        desc: '下の「🔑 保存済みID：tanaka_hanako」を押すと、文字を打たずに会員IDが自動入力されます。',
+        hint: '「🔑 保存済みID：tanaka_hanako」ボタンを押してください。',
+        safeScreen: 'browser',
+        tokens: [{ id: 'tok_id', label: '🔑 保存済みID：tanaka_hanako', icon: '🔑' }]
+      },
+      {
+        title: '3. 「🔑 保存済みパスワードを自動入力」ボタンを押しましょう',
+        desc: 'パスワード欄の下にある「🔑 保存済みパスワードを自動入力」ボタンを押してください。',
+        hint: 'スマホ内の青い枠のボタン「🔑 保存済みパスワードを自動入力」を押します。',
+        safeScreen: 'browser',
+        tokens: [{ id: 'tok_pw', label: '🔑 保存済みパスワードを自動入力', icon: '🔐' }]
+      },
+      {
+        title: '4. 確認ダイアログで「はい（自動入力）」を選びましょう',
+        desc: '「保存済みのパスワードを自動入力しますか？」と出たら「はい（自動入力）」を押してください。',
+        hint: '青い「はい（自動入力）」ボタンを押すと、パスワード欄に自動入力されます。',
+        safeScreen: 'browser',
+        tokens: []
+      },
+      {
+        title: '5. 「ログインする」ボタンを押して完了しましょう',
+        desc: 'IDとパスワードが入ったことを確認（「👁️ 中身を見る」で文字確認もできます）し、「ログインする」を押してください。',
+        hint: '一番下の青い「ログインする」ボタンを押すとログイン完了です。',
+        safeScreen: 'browser',
+        tokens: []
+      }
+    ];
+
+    const LessonState = {
       stepIndex: 0,
       completed: false,
       hintVisible: false,
-
-      // 画面ルーティング状態
-      activeScreen: 'browser', // 'home' | 'drawer' | 'browser' | 'vault' | 'recents'
-      dialogOpen: false,
-
-      // バックグラウンド起動中アプリ一覧
-      runningApps: ['browser'],
-
-      // フォーム入力状態
-      formValues: {
-        autofillPromptOpen: false,
-        loginId: '',
-        loginPw: '',
-        passwordRevealed: false
-      }
+      activeScreen: 'browser',
+      idFocused: false,
+      loginId: '',
+      loginPwFilled: false,
+      showPwPlain: false
     };
 
-    // =====================================================================
-    // C. 排他的画面ルーティングエンジン（ScreenRouter）
-    //    ※ 遷移元および非アクティブ要素を必ず display: none & aria-hidden="true" にする
-    // =====================================================================
+    const SCREEN_DOM_MAP = {
+      home: 'screenHome',
+      browser: 'screenBrowser',
+      vault: 'screenVault'
+    };
+
     const ScreenRouter = {
-      SCREEN_DOM_IDS: {
-        home: 'screenHome',
-        drawer: 'screenDrawer',
-        browser: 'screenBrowser',
-        vault: 'screenVault',
-        recents: 'screenRecents'
-      },
-
       navigate(targetKey, animType = 'zoom') {
-        try {
-          if (!this.SCREEN_DOM_IDS[targetKey]) return;
-
-          // 確認ダイアログが開いていたら必ず閉じる
-          ConfirmDialogController.close();
-
-          AppState.activeScreen = targetKey;
-
-          // すべての画面を走査し、非アクティブ画面は即座に display: none & aria-hidden="true"
-          Object.entries(this.SCREEN_DOM_IDS).forEach(([key, domId]) => {
-            const el = document.getElementById(domId);
-            if (!el) return;
-            el.classList.remove('anim-zoom', 'anim-slide-up');
-            if (key !== targetKey) {
-              el.style.display = 'none';
-              el.setAttribute('aria-hidden', 'true');
-            }
-          });
-
-          // アクティブ画面のみ表示
-          const activeEl = document.getElementById(this.SCREEN_DOM_IDS[targetKey]);
-          if (activeEl) {
-            activeEl.style.display = 'flex';
-            activeEl.setAttribute('aria-hidden', 'false');
-            void activeEl.offsetWidth;
-            activeEl.classList.add(animType === 'slide' ? 'anim-slide-up' : 'anim-zoom');
-          }
-
-          // 画面ごとの固有描画更新
-          if (targetKey === 'home') {
-            this.updateHomeBadges();
-          } else if (targetKey === 'browser') {
-            BrowserAppController.render();
-          } else if (targetKey === 'recents') {
-            this.renderRecents();
-          }
-
-          LayerMapEngine.render();
-        } catch (err) {
-          console.error('画面遷移エラー:', err);
-        }
+        ConfirmDialog.close();
+        LessonState.activeScreen = targetKey;
+        SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, targetKey, animType);
+        if (targetKey === 'browser') BrowserApp.render();
+        LayerMap.render();
       },
-
-      openApp(appId) {
-        if (!AppState.runningApps.includes(appId)) {
-          AppState.runningApps.push(appId);
-        } else {
-          AppState.runningApps = [...AppState.runningApps.filter(id => id !== appId), appId];
-        }
-        this.navigate(appId, 'zoom');
-      },
-
-      pressHome() {
-        this.navigate('home', 'zoom');
-      },
-
+      pressHome() { this.navigate('home', 'zoom'); },
       pressBack() {
-        if (AppState.dialogOpen) {
-          ConfirmDialogController.reject();
-          return;
-        }
-        if (AppState.activeScreen !== 'home') {
-          this.navigate('home', 'zoom');
-        }
-      },
-
-      pressRecents() {
-        if (AppState.activeScreen === 'recents') {
-          const lastApp = AppState.runningApps[AppState.runningApps.length - 1] || 'browser';
-          this.navigate(lastApp, 'zoom');
-        } else {
-          this.navigate('recents', 'slide');
-        }
-      },
-
-      updateHomeBadges() {
-        const browserBadge = document.getElementById('badgeHomeBrowser');
-        const isBrowserWaiting = AppState.runningApps.includes('browser') && AppState.activeScreen !== 'browser';
-        browserBadge.style.display = isBrowserWaiting ? 'inline-block' : 'none';
-        browserBadge.setAttribute('aria-hidden', isBrowserWaiting ? 'false' : 'true');
-      },
-
-      renderRecents() {
-        const container = document.getElementById('recentsCardsContainer');
-        const appMeta = {
-          browser: {
-            icon: '🌐',
-            name: '会員サイト（ログイン画面）',
-            color: '#0067C0',
-            status: AppState.formValues.loginId ? '自動入力済み（待機中）' : 'ログイン入力画面（待機中）'
-          },
-          vault: {
-            icon: '🔐',
-            name: '端末の鍵の保管庫',
-            color: '#B45309',
-            status: '保存済みアカウント 1件'
-          }
-        };
-
-        const list = [...AppState.runningApps].reverse();
-        container.innerHTML = list.map(appId => {
-          const meta = appMeta[appId];
-          if (!meta) return '';
-          return `
-            <button type="button" onclick="ScreenRouter.openApp('${appId}')"
-              class="w-full p-3 rounded-[10px] text-left cursor-pointer transition flex items-center justify-between bg-white text-[#0F172A] border border-[#CBD5E1] hover:bg-[#F8FAFC]">
-              <div class="flex items-center gap-2.5">
-                <span class="w-10 h-10 rounded-[8px] text-white flex items-center justify-center text-lg shrink-0"
-                  style="background-color: ${meta.color};">${meta.icon}</span>
-                <div>
-                  <div class="font-bold text-xs">${meta.name}</div>
-                  <div class="text-[11px] text-[#475569] mt-0.5">${meta.status}</div>
-                </div>
-              </div>
-              <span class="px-2 py-1 rounded bg-[#0067C0] text-white text-[11px] font-bold shrink-0">
-                この画面へ戻る
-              </span>
-            </button>
-          `;
-        }).join('');
-      },
-
-      showInfoToast(msg) {
-        const box = document.getElementById('homeToastBox');
-        if (!box) return;
-        box.textContent = msg;
-        box.style.display = 'block';
-        box.setAttribute('aria-hidden', 'false');
-        setTimeout(() => {
-          box.style.display = 'none';
-          box.setAttribute('aria-hidden', 'true');
-        }, 2600);
+        if (LessonState.activeScreen !== 'browser') this.navigate('browser', 'zoom');
       }
     };
 
-    // =====================================================================
-    // D. 確認ダイアログコントローラー（排他的表示）
-    // =====================================================================
-    const ConfirmDialogController = {
-      onAcceptCallback: null,
-
-      open(title, message, onAccept) {
-        AppState.dialogOpen = true;
-        this.onAcceptCallback = onAccept;
-
-        // 背後のスクリーンを完全に非表示（display: none & aria-hidden="true"）にして誤タップ・透け防止
-        Object.values(ScreenRouter.SCREEN_DOM_IDS).forEach(domId => {
+    const ConfirmDialog = {
+      cb: null,
+      open(title, msg, onAccept) {
+        this.cb = onAccept;
+        Object.values(SCREEN_DOM_MAP).forEach(domId => {
           const el = document.getElementById(domId);
-          if (el) {
-            el.style.display = 'none';
-            el.setAttribute('aria-hidden', 'true');
-          }
+          if (el) { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); }
         });
-
         document.getElementById('confirmDialogTitle').textContent = title;
-        document.getElementById('confirmDialogMessage').textContent = message;
-
-        const dialogEl = document.getElementById('modalConfirmDialog');
-        dialogEl.style.display = 'flex';
-        dialogEl.setAttribute('aria-hidden', 'false');
+        document.getElementById('confirmDialogMessage').textContent = msg;
+        const d = document.getElementById('modalConfirmDialog');
+        d.style.display = 'flex';
+        d.setAttribute('aria-hidden', 'false');
       },
-
       close() {
-        AppState.dialogOpen = false;
-        this.onAcceptCallback = null;
-        const dialogEl = document.getElementById('modalConfirmDialog');
-        if (dialogEl) {
-          dialogEl.style.display = 'none';
-          dialogEl.setAttribute('aria-hidden', 'true');
-        }
+        this.cb = null;
+        const d = document.getElementById('modalConfirmDialog');
+        if (d) { d.style.display = 'none'; d.setAttribute('aria-hidden', 'true'); }
       },
-
       accept() {
-        const cb = this.onAcceptCallback;
+        const fn = this.cb;
         this.close();
-        ScreenRouter.navigate(AppState.activeScreen, 'zoom');
-        if (typeof cb === 'function') cb();
+        SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, LessonState.activeScreen, 'zoom');
+        if (typeof fn === 'function') fn();
       },
-
       reject() {
         this.close();
-        ScreenRouter.navigate(AppState.activeScreen, 'zoom');
+        SmartNaviCommon.switchScreenExclusive(SCREEN_DOM_MAP, LessonState.activeScreen, 'zoom');
       }
     };
 
-    // =====================================================================
-    // E. 共通パーツ配置エンジン（TokenTrayEngine）
-    // =====================================================================
-    const TokenTrayEngine = {
+    const BrowserApp = {
+      focusId() {
+        LessonState.idFocused = true;
+        this.render();
+        if (LessonState.stepIndex === 0) advanceStep(1);
+      },
+      applyIdToken() {
+        if (LessonState.activeScreen !== 'browser') ScreenRouter.navigate('browser', 'zoom');
+        LessonState.idFocused = true;
+        LessonState.loginId = 'tanaka_hanako';
+        this.render();
+        if (LessonState.stepIndex <= 1) advanceStep(2);
+      },
+      requestPwAutoFill() {
+        if (!LessonState.loginId) return;
+        if (LessonState.stepIndex === 2) advanceStep(3);
+        ConfirmDialog.open('自動入力の確認', '鍵の保管庫に保存されているパスワードを自動入力しますか？', () => {
+          LessonState.loginPwFilled = true;
+          this.render();
+          advanceStep(4);
+        });
+      },
+      togglePwEye() {
+        LessonState.showPwPlain = !LessonState.showPwPlain;
+        this.render();
+      },
+      submitLogin() {
+        if (LessonState.loginId && LessonState.loginPwFilled) {
+          LessonState.completed = true;
+          SmartNaviCommon.markLessonCompleted(LESSON_SLUG);
+          this.render();
+          renderStepUI();
+          LayerMap.render();
+        }
+      },
       render() {
-        const container = document.getElementById('tokenTrayContainer');
-        const step = PASSWORD_AUTH_LESSON.steps[AppState.stepIndex];
-        const tokens = (step && step.tokens) ? step.tokens : [];
-
-        if (AppState.completed || tokens.length === 0) {
-          container.innerHTML = `
-            <div class="w-full p-2.5 rounded-[8px] border text-xs"
-              style="background-color: var(--bg-card-sub); border-color: var(--border-subtle); color: var(--text-muted);">
-              現在のステップではパーツ配置は不要です。スマホ画面の案内に沿って操作してください。
-            </div>
-          `;
-          return;
-        }
-
-        container.innerHTML = tokens.map(tok => `
-          <button type="button"
-            draggable="true"
-            ondragstart="TokenTrayEngine.onDragStart(event, '${tok.id}')"
-            onclick="TokenTrayEngine.applyToken('${tok.id}')"
-            class="px-3.5 py-2.5 rounded-[8px] border-2 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition shadow-2xs"
-            style="background-color: var(--vault-tint); border-color: var(--vault-primary); color: var(--text-primary);">
-            <span>${tok.icon}</span>
-            <span>${tok.label}</span>
-            <span class="text-[11px] px-1.5 py-0.5 rounded bg-white/90 text-[#B45309]">押して呼び出す</span>
-          </button>
-        `).join('');
-      },
-
-      onDragStart(event, tokenId) {
-        if (event.dataTransfer) {
-          event.dataTransfer.setData('text/plain', tokenId);
-        }
-      },
-
-      onDropToField(event) {
-        event.preventDefault();
-        event.currentTarget.classList.remove('drop-target-active');
-        const tokenId = event.dataTransfer ? event.dataTransfer.getData('text/plain') : '';
-        if (tokenId) {
-          this.applyToken(tokenId);
-        }
-      },
-
-      applyToken(tokenId) {
-        const step = PASSWORD_AUTH_LESSON.steps[AppState.stepIndex];
-        const tok = (step.tokens || []).find(t => t.id === tokenId);
-        if (!tok) return;
-
-        if (AppState.activeScreen !== 'browser') {
-          ScreenRouter.openApp('browser');
-        }
-
-        AppState.formValues.autofillPromptOpen = true;
-        BrowserAppController.render();
-        BrowserAppController.requestConfirmAutofill();
-      }
-    };
-
-    // =====================================================================
-    // F. 会員サイトコントローラー（BrowserAppController）
-    // =====================================================================
-    const BrowserAppController = {
-      render() {
-        const container = document.getElementById('browserContentArea');
-
-        // 完了画面（マイページログイン成功）
-        if (AppState.completed) {
-          container.innerHTML = `
+        const c = document.getElementById('browserContentArea');
+        if (LessonState.completed) {
+          c.innerHTML = `
             <div class="flex-1 flex flex-col items-center justify-center text-center p-2">
-              <div class="w-16 h-16 rounded-full bg-[#DCFCE7] text-[#15803D] flex items-center justify-center text-3xl font-bold mb-3">
-                ✓
-              </div>
-              <h3 class="font-bold text-base text-[#15803D] mb-1">会員ページにログインできました！</h3>
+              <div class="w-16 h-16 rounded-full bg-[#DCFCE7] text-[#15803D] flex items-center justify-center text-3xl font-bold mb-3">✓</div>
+              <h3 class="font-bold text-base text-[#15803D] mb-1">自動入力でログイン完了！</h3>
               <p class="text-xs text-[#334155] leading-relaxed mb-4">
-                文字を1つずつ打たずに、端末の「鍵の保管庫」から自動入力してログインする流れを体験できました。
+                1文字ずつ打ち込まなくても、スマホの「鍵の保管庫」機能を使うことで簡単かつ正確にログインできました。
               </p>
-              <div class="w-full p-3 rounded-[8px] bg-[#F8FAFC] border border-[#CBD5E1] text-left text-xs space-y-1 mb-4">
-                <div class="font-bold text-[#0F172A]">今回のポイント振り返り：</div>
-                <div>① 入力欄を押すと保存済みの鍵を呼び出せる</div>
-                <div>② IDとパスワードの2つが同時に自動入力される</div>
-                <div>③ 「👁️ 中身を見る」で伏せ字の中身も確認できる</div>
+              <div class="w-full space-y-2">
+                <a href="../screenshot/index.html" class="block w-full py-2.5 rounded-[8px] bg-[#0067C0] text-white font-bold text-xs no-underline">
+                  次のレッスン「スクリーンショット」へ進む →
+                </a>
+                <button type="button" onclick="resetLesson()" class="w-full py-2 rounded-[8px] bg-[#F1F5F9] text-[#334155] font-bold text-xs cursor-pointer">
+                  もう一度最初から練習する
+                </button>
               </div>
-              <button type="button" onclick="resetCurrentLesson()"
-                class="w-full py-2.5 rounded-[8px] bg-[#B45309] text-white font-bold text-xs cursor-pointer">
-                もう一度最初から練習する
-              </button>
-            </div>
-          `;
+            </div>`;
           return;
         }
 
-        const idVal = AppState.formValues.loginId;
-        const pwVal = AppState.formValues.loginPw;
-        const promptOpen = AppState.formValues.autofillPromptOpen;
-        const revealed = AppState.formValues.passwordRevealed;
+        const pwDisplay = LessonState.loginPwFilled
+          ? (LessonState.showPwPlain ? 'hana2026' : '●●●●●●●●')
+          : '（未入力）';
 
-        const displayedPassword = !pwVal
-          ? '（未入力）'
-          : revealed
-            ? PASSWORD_AUTH_LESSON.savedPasswordPlain
-            : '••••••••';
-
-        container.innerHTML = `
+        c.innerHTML = `
           <div>
             <h3 class="font-bold text-sm text-[#0F172A] mb-1">会員ログイン</h3>
-            <p class="text-xs text-[#475569] mb-3 leading-relaxed">
-              文字を打たずに、保存済みの鍵を呼び出してログインします。
-            </p>
+            <p class="text-xs text-[#475569] mb-3">保存済みの鍵を呼び出して自動入力します。</p>
 
-            <!-- 会員ID欄 -->
             <label class="block text-xs font-bold text-[#334155] mb-1">会員ID</label>
-            <div
+            <div onclick="BrowserApp.focusId()"
               ondragover="event.preventDefault(); this.classList.add('drop-target-active');"
               ondragleave="this.classList.remove('drop-target-active');"
-              ondrop="TokenTrayEngine.onDropToField(event)"
-              onclick="BrowserAppController.focusLoginField()"
-              class="w-full p-2.5 rounded-[8px] border-2 text-xs font-bold cursor-pointer mb-2.5 transition ${
-                idVal
+              ondrop="event.preventDefault(); BrowserApp.applyIdToken();"
+              class="w-full p-2.5 rounded-[8px] border-2 text-xs font-bold cursor-pointer mb-2.5 ${
+                LessonState.loginId
                   ? 'bg-[#EBF4FF] border-[#0067C0] text-[#0F172A]'
-                  : promptOpen
-                    ? 'bg-[#FEF3C7] border-[#B45309] text-[#92400E]'
+                  : LessonState.idFocused
+                    ? 'bg-[#FEF9C3] border-[#CA8A04] text-[#854D0E]'
                     : 'bg-[#F8FAFC] border-[#94A3B8] text-[#64748B]'
               }">
-              ${idVal || (promptOpen ? '選択中：下の「保存済みの鍵を使う」を押してください' : 'ここを押して保存済みの鍵を呼び出す')}
+              ${LessonState.loginId || (LessonState.idFocused ? '選択中：下の「🔑 保存済みID」を押してください' : 'ここを押して会員IDを選択')}
             </div>
 
-            <!-- パスワード欄 ＋ 中身表示切替ボタン -->
             <label class="block text-xs font-bold text-[#334155] mb-1">パスワード</label>
-            <div class="flex items-center gap-1.5 mb-2.5">
-              <div onclick="BrowserAppController.focusLoginField()"
-                class="flex-1 p-2.5 rounded-[8px] border-2 text-xs font-bold cursor-pointer ${
-                  pwVal
-                    ? 'bg-[#DCFCE7] border-[#16A34A] text-[#15803D]'
-                    : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#94A3B8]'
-                }">
-                ${displayedPassword}
-              </div>
-
-              <!-- パスワード伏せ字表示切替ボタン（入力済み時のみ有効） -->
-              <button type="button" onclick="BrowserAppController.toggleRevealPassword()"
-                class="px-2.5 py-2.5 rounded-[8px] border text-xs font-bold cursor-pointer shrink-0 ${
-                  pwVal
-                    ? 'bg-[#F8FAFC] hover:bg-[#EBF4FF] border-[#0067C0] text-[#0067C0]'
-                    : 'bg-[#F1F5F9] border-[#CBD5E1] text-[#94A3B8]'
-                }">
-                ${revealed ? '🙈 隠す' : '👁️ 中身を見る'}
-              </button>
+            <div class="w-full p-2.5 rounded-[8px] border-2 text-xs font-bold mb-2 flex items-center justify-between ${
+              LessonState.loginPwFilled ? 'bg-[#DCFCE7] border-[#16A34A] text-[#15803D]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#94A3B8]'
+            }">
+              <span>${pwDisplay}</span>
+              ${LessonState.loginPwFilled
+                ? `<button type="button" onclick="BrowserApp.togglePwEye()" class="px-2 py-0.5 rounded bg-white border border-[#16A34A] text-[10px] font-bold text-[#15803D] cursor-pointer">${LessonState.showPwPlain ? '🙈 隠す' : '👁️ 中身を見る'}</button>`
+                : ''
+              }
             </div>
 
-            <!-- 入力欄タップ後に現れる自動入力バー（排他的表示） -->
-            <div id="autofillSuggestionBar" aria-hidden="${promptOpen && !idVal ? 'false' : 'true'}"
-              style="display: ${promptOpen && !idVal ? 'block' : 'none'};"
-              class="p-2.5 rounded-[8px] bg-[#FEF3C7] border-2 border-[#B45309]">
-              <div class="text-[11px] font-bold text-[#92400E] mb-1.5">
-                🔐 端末の「鍵の保管庫」に保存された情報が見つかりました：
-              </div>
-              <button type="button" onclick="BrowserAppController.requestConfirmAutofill()"
-                class="w-full py-2.5 px-3 rounded-[8px] bg-[#B45309] hover:bg-[#92400E] text-white font-bold text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                <span>🔑 保存済みの鍵を使う（自動入力）</span>
-              </button>
-            </div>
+            <button type="button" onclick="BrowserApp.requestPwAutoFill()"
+              class="w-full py-2.5 px-3 rounded-[8px] border text-xs font-bold cursor-pointer ${
+                LessonState.loginId && !LessonState.loginPwFilled
+                  ? 'bg-[#EBF4FF] border-[#0067C0] text-[#0067C0]'
+                  : 'bg-[#F1F5F9] border-[#CBD5E1] text-[#64748B]'
+              }">
+              🔑 保存済みパスワードを自動入力
+            </button>
           </div>
 
-          <button type="button" onclick="BrowserAppController.submitLogin()"
-            class="w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer transition ${
-              idVal && pwVal
+          <button type="button" onclick="BrowserApp.submitLogin()"
+            class="w-full py-3 rounded-[8px] font-bold text-xs cursor-pointer ${
+              LessonState.loginId && LessonState.loginPwFilled
                 ? 'bg-[#0067C0] hover:bg-[#00529B] text-white'
                 : 'bg-[#CBD5E1] text-[#64748B]'
             }">
             ログインする
-          </button>
-        `;
-      },
-
-      focusLoginField() {
-        if (AppState.formValues.loginId) return;
-        AppState.formValues.autofillPromptOpen = true;
-        this.render();
-        if (AppState.stepIndex === 0) {
-          LessonEngine.advanceStepTo(1);
-        }
-      },
-
-      requestConfirmAutofill() {
-        if (AppState.formValues.loginId) return;
-        if (AppState.stepIndex <= 1) {
-          LessonEngine.advanceStepTo(2);
-        }
-        ConfirmDialogController.open(
-          '自動入力の確認',
-          `保存されている会員ID（${PASSWORD_AUTH_LESSON.savedId}）とパスワードを自動入力しますか？`,
-          () => {
-            AppState.formValues.loginId = PASSWORD_AUTH_LESSON.savedId;
-            AppState.formValues.loginPw = '••••••••';
-            AppState.formValues.autofillPromptOpen = false;
-            this.render();
-            LessonEngine.advanceStepTo(3);
-          }
-        );
-      },
-
-      toggleRevealPassword() {
-        if (!AppState.formValues.loginPw) return;
-        AppState.formValues.passwordRevealed = !AppState.formValues.passwordRevealed;
-        this.render();
-        if (AppState.formValues.passwordRevealed && AppState.stepIndex === 3) {
-          LessonEngine.advanceStepTo(4);
-        }
-      },
-
-      submitLogin() {
-        if (!AppState.formValues.loginId || !AppState.formValues.loginPw) return;
-        AppState.completed = true;
-        this.render();
-        LessonEngine.completeLesson();
+          </button>`;
       }
     };
 
-    // =====================================================================
-    // G. 共通立体階層マップエンジン（LayerMapEngine）
-    // =====================================================================
-    const LayerMapEngine = {
+    const LayerMap = {
       render() {
-        const screen = AppState.activeScreen;
+        const s = LessonState.activeScreen;
         const badge = document.getElementById('layerStatusSummaryBadge');
-        const expText = document.getElementById('layerExplanationText');
+        const exp = document.getElementById('layerExplanationText');
+        const cB = document.getElementById('layerCardBrowser');
+        const cV = document.getElementById('layerCardVault');
+        const cH = document.getElementById('layerCardHome');
+        const pB = document.getElementById('layerPillBrowser');
+        const pV = document.getElementById('layerPillVault');
+        const pH = document.getElementById('layerPillHome');
+        [cB, cV, cH].forEach(c => { c.style.backgroundColor = 'var(--bg-card-sub)'; c.style.borderColor = 'var(--border-subtle)'; });
+        [pB, pV, pH].forEach(p => { p.style.display = 'none'; });
 
-        const cardBase = document.getElementById('layerCardBase');
-        const cardMain = document.getElementById('layerCardMain');
-        const cardVault = document.getElementById('layerCardVault');
-
-        const pillBase = document.getElementById('layerPillBase');
-        const pillMain = document.getElementById('layerPillMain');
-        const pillVault = document.getElementById('layerPillVault');
-
-        const subBase = document.getElementById('layerSubBase');
-        const subMain = document.getElementById('layerSubMain');
-        const subVault = document.getElementById('layerSubVault');
-
-        // リセット
-        [cardBase, cardMain, cardVault].forEach(c => {
-          c.style.backgroundColor = 'var(--bg-card-sub)';
-          c.style.borderColor = 'var(--border-subtle)';
-        });
-        [pillBase, pillMain, pillVault].forEach(p => {
-          p.style.display = 'none';
-        });
-
-        if (screen === 'browser') {
-          badge.textContent = '最前面：🌐 会員サイト';
-          expText.textContent = AppState.formValues.loginId
-            ? '裏側の「🔐 鍵の保管庫」からIDとパスワードが安全に受け渡され、会員サイトの入力欄に自動入力されました！'
-            : 'いま「🌐 会員サイト」のログイン画面を開いています。入力枠を押すと、裏側にある「🔐 鍵の保管庫」から保存済みの情報を呼び出せます。';
-
-          cardMain.style.backgroundColor = 'var(--accent-tint)';
-          cardMain.style.borderColor = 'var(--accent-primary)';
-          pillMain.style.display = 'block';
-          subMain.textContent = '● 現在操作中（最前面）';
-
-          cardVault.style.backgroundColor = 'var(--vault-tint)';
-          cardVault.style.borderColor = 'var(--vault-primary)';
-          subVault.textContent = AppState.formValues.loginId ? '✓ 自動入力を実行しました' : '裏側で鍵を待機中';
-          subBase.textContent = '土台の玄関画面';
-        } else if (screen === 'vault') {
+        if (s === 'browser') {
+          badge.textContent = '最前面：🌐 会員ログイン画面';
+          exp.textContent = 'ログイン画面の入力欄を押すと、スマホの裏側にある「🔐 鍵の保管庫」から保存済みのIDやパスワードを安全に呼び出せます。';
+          cB.style.backgroundColor = 'var(--accent-tint)'; cB.style.borderColor = 'var(--accent-primary)'; pB.style.display = 'block';
+        } else if (s === 'vault') {
           badge.textContent = '最前面：🔐 鍵の保管庫';
-          expText.textContent = '端末の中に保存されているIDとパスワードの一覧を確認しています。「🌐 会員サイトのログイン画面へ戻る」で元の作業へ戻れます。';
-
-          cardVault.style.backgroundColor = 'var(--vault-tint)';
-          cardVault.style.borderColor = 'var(--vault-primary)';
-          pillVault.style.display = 'block';
-          subVault.textContent = '● 保存一覧を表示中';
-
-          cardMain.style.backgroundColor = 'var(--waiting-bg)';
-          cardMain.style.borderColor = 'var(--waiting-border)';
-          subMain.textContent = '⏸ 下の層で待機中';
+          exp.textContent = 'スマホに保存されているIDとパスワードの一覧を確認しています。確認したらログイン画面へ戻れます。';
+          cV.style.backgroundColor = 'var(--accent-tint)'; cV.style.borderColor = 'var(--accent-primary)'; pV.style.display = 'block';
         } else {
-          badge.textContent = screen === 'home' ? '最前面：🏠 ホーム画面' : screen === 'drawer' ? '最前面：🗂️ アプリ一覧' : '切り替え：□ 履歴';
-          expText.textContent = '基準の玄関画面です。「🌐 会員サイト」や「🔐 鍵の保管庫」を選んで切り替えられます。';
-
-          cardBase.style.backgroundColor = 'var(--accent-tint)';
-          cardBase.style.borderColor = 'var(--accent-primary)';
-          pillBase.style.display = 'block';
-          subBase.textContent = '● 現在表示中';
+          badge.textContent = '最前面：🏠 ホーム画面';
+          exp.textContent = 'ホーム画面です。「🌐 会員サイト」または「🔐 鍵の保管庫」を開けます。';
+          cH.style.backgroundColor = 'var(--accent-tint)'; cH.style.borderColor = 'var(--accent-primary)'; pH.style.display = 'block';
         }
       }
     };
 
-    // =====================================================================
-    // H. レッスン進行・ガイド管理エンジン（LessonEngine）
-    // =====================================================================
-    const LessonEngine = {
-      reset() {
-        AppState.stepIndex = 0;
-        AppState.completed = false;
-        AppState.hintVisible = false;
-        AppState.runningApps = ['browser'];
-        AppState.formValues = {
-          autofillPromptOpen: false,
-          loginId: '',
-          loginPw: '',
-          passwordRevealed: false
-        };
-        this.renderStepGuide();
-        TokenTrayEngine.render();
-        ScreenRouter.navigate('browser', 'zoom');
-      },
-
-      advanceStepTo(nextIndex) {
-        if (nextIndex > AppState.stepIndex && nextIndex < PASSWORD_AUTH_LESSON.steps.length) {
-          AppState.stepIndex = nextIndex;
-          this.renderStepGuide();
-          TokenTrayEngine.render();
-        }
-      },
-
-      completeLesson() {
-        AppState.completed = true;
-        this.renderStepGuide();
-        TokenTrayEngine.render();
-        LayerMapEngine.render();
-      },
-
-      renderStepGuide() {
-        const total = PASSWORD_AUTH_LESSON.steps.length;
-        const step = PASSWORD_AUTH_LESSON.steps[AppState.stepIndex] || PASSWORD_AUTH_LESSON.steps[total - 1];
-
-        document.getElementById('lessonTitleDisplay').textContent = PASSWORD_AUTH_LESSON.title;
-        const counterEl = document.getElementById('lessonStepCounter');
-
-        if (AppState.completed) {
-          counterEl.textContent = '🎉 全ステップ達成！';
-          counterEl.style.backgroundColor = 'var(--success-fg)';
-          counterEl.style.color = '#FFFFFF';
-          document.getElementById('stepInstructionTitle').textContent = 'おめでとうございます！パスワード自動入力ログインをマスターしました';
-          document.getElementById('stepInstructionDesc').textContent = '「↺ 最初からやり直す」を押すと、何度でも繰り返し練習できます。';
-        } else {
-          counterEl.textContent = `ステップ ${AppState.stepIndex + 1} / ${total}`;
-          counterEl.style.backgroundColor = 'var(--vault-primary)';
-          counterEl.style.color = '#FFFFFF';
-          document.getElementById('stepInstructionTitle').textContent = step.title;
-          document.getElementById('stepInstructionDesc').textContent = step.desc;
-        }
-
-        // ヒントパネルの排他的表示制御
-        const hintPanel = document.getElementById('stepHintPanel');
-        const hintBtn = document.getElementById('toggleStepHintBtn');
-        document.getElementById('stepHintText').textContent = step.hint;
-
-        if (AppState.hintVisible && !AppState.completed) {
-          hintPanel.style.display = 'block';
-          hintPanel.setAttribute('aria-hidden', 'false');
-          hintBtn.setAttribute('aria-expanded', 'true');
-          hintBtn.innerHTML = '<span>💡 ヒントを閉じる</span>';
-        } else {
-          hintPanel.style.display = 'none';
-          hintPanel.setAttribute('aria-hidden', 'true');
-          hintBtn.setAttribute('aria-expanded', 'false');
-          hintBtn.innerHTML = '<span>💡 ヒントを見る</span>';
-        }
-
-        // 進捗ドット描画
-        const dotsEl = document.getElementById('stepProgressDots');
-        dotsEl.innerHTML = PASSWORD_AUTH_LESSON.steps.map((_, idx) => {
-          const isDone = AppState.completed || idx < AppState.stepIndex;
-          const isCurrent = !AppState.completed && idx === AppState.stepIndex;
-          return `
-            <div class="h-2 flex-1 rounded-full transition"
-              style="background-color: ${
-                isDone ? 'var(--success-border)' : isCurrent ? 'var(--vault-primary)' : 'var(--border-subtle)'
-              };"></div>
-          `;
-        }).join('');
+    function advanceStep(idx) {
+      if (idx > LessonState.stepIndex && idx < STEPS.length) {
+        LessonState.stepIndex = idx;
+        renderStepUI();
       }
-    };
-
-    // =====================================================================
-    // I. 補助コントロール関数（テーマ・文字サイズ・ヒント・迷子復帰）
-    // =====================================================================
-    function toggleFontSize() {
-      AppState.fontLarge = !AppState.fontLarge;
-      document.documentElement.classList.toggle('font-large', AppState.fontLarge);
-      document.getElementById('fontToggleBtn').setAttribute('aria-checked', AppState.fontLarge ? 'true' : 'false');
-      document.getElementById('fontSizeStatusLabel').textContent = AppState.fontLarge ? '文字サイズ：大きめ' : '文字サイズ：標準';
     }
 
-    function toggleTheme() {
-      AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', AppState.theme);
-      document.getElementById('themeToggleBtn').setAttribute('aria-checked', AppState.theme === 'dark' ? 'true' : 'false');
-      document.getElementById('themeStatusLabel').textContent = AppState.theme === 'dark' ? '配色：ダーク' : '配色：ライト';
-      LayerMapEngine.render();
+    function renderStepUI() {
+      const total = STEPS.length;
+      const step = STEPS[LessonState.stepIndex] || STEPS[total - 1];
+      const counter = document.getElementById('lessonStepCounter');
+      if (LessonState.completed) {
+        counter.textContent = '🎉 全ステップ達成！';
+        counter.style.backgroundColor = 'var(--success-fg)'; counter.style.color = '#FFFFFF';
+        document.getElementById('stepInstructionTitle').textContent = 'おめでとうございます！パスワード自動入力をマスターしました';
+        document.getElementById('stepInstructionDesc').textContent = '「レッスン一覧」から他の練習にもぜひ挑戦してみてください。';
+        SmartNaviCommon.renderHintPanel(false, '');
+        SmartNaviCommon.renderTokenTray('tokenTrayContainer', [], null);
+      } else {
+        counter.textContent = `ステップ ${LessonState.stepIndex + 1} / ${total}`;
+        counter.style.backgroundColor = 'var(--accent-primary)'; counter.style.color = 'var(--accent-text)';
+        document.getElementById('stepInstructionTitle').textContent = step.title;
+        document.getElementById('stepInstructionDesc').textContent = step.desc;
+        SmartNaviCommon.renderHintPanel(LessonState.hintVisible, step.hint);
+        SmartNaviCommon.renderTokenTray('tokenTrayContainer', step.tokens, (tokId) => {
+          if (tokId === 'tok_id') BrowserApp.applyIdToken();
+          if (tokId === 'tok_pw') BrowserApp.requestPwAutoFill();
+        });
+      }
+      document.getElementById('stepProgressDots').innerHTML = STEPS.map((_, idx) => {
+        const done = LessonState.completed || idx < LessonState.stepIndex;
+        const curr = !LessonState.completed && idx === LessonState.stepIndex;
+        return `<div class="h-2 flex-1 rounded-full" style="background-color: ${done ? 'var(--success-border)' : curr ? 'var(--accent-primary)' : 'var(--border-subtle)'};"></div>`;
+      }).join('');
     }
 
-    function toggleStepHint(forceVal = null) {
-      AppState.hintVisible = forceVal !== null ? forceVal : !AppState.hintVisible;
-      LessonEngine.renderStepGuide();
-    }
-
-    function resetCurrentLesson() {
-      LessonEngine.reset();
+    function toggleHint(force = null) {
+      LessonState.hintVisible = force !== null ? force : !LessonState.hintVisible;
+      renderStepUI();
     }
 
     function recoverToSafePoint() {
-      const step = PASSWORD_AUTH_LESSON.steps[AppState.stepIndex];
-      const target = (step && step.safeScreen) ? step.safeScreen : 'browser';
-      ScreenRouter.navigate(target, 'zoom');
+      ScreenRouter.navigate('browser', 'zoom');
     }
 
-    // =====================================================================
-    // J. 初期化実行
-    // =====================================================================
+    function onPrefUpdated() {
+      LayerMap.render();
+    }
+
+    function resetLesson() {
+      LessonState.stepIndex = 0;
+      LessonState.completed = false;
+      LessonState.hintVisible = false;
+      LessonState.idFocused = false;
+      LessonState.loginId = '';
+      LessonState.loginPwFilled = false;
+      LessonState.showPwPlain = false;
+      renderStepUI();
+      ScreenRouter.navigate('browser', 'zoom');
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
-      LessonEngine.reset();
+      SmartNaviCommon.initPreferences(onPrefUpdated);
+      resetLesson();
     });
   </script>
 </body>

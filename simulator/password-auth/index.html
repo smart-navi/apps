@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>パスワード自動入力ログイン - 事前解説 | smart-navi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/simulator-common.css" />
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <header class="app-header sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-[8px] flex items-center justify-center shrink-0 text-xl"
+          style="background-color: var(--accent-primary); color: var(--accent-text);">
+          🔑
+        </div>
+        <div>
+          <nav aria-label="パンくずリスト" class="text-[11px] font-semibold flex items-center gap-1.5 mb-0.5"
+            style="color: var(--text-muted);">
+            <a href="../index.html" class="hover:underline" style="color: var(--accent-primary);">レッスン一覧</a><span>＞</span><span>パスワード自動入力ログイン</span>
+          </nav>
+          <h1 class="text-base sm:text-lg font-bold leading-tight" style="color: var(--text-primary);">
+            パスワード自動入力ログイン
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div class="flex items-center gap-2">
+          <span id="fontSizeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
+            文字サイズ：標準
+          </span>
+          <button type="button" id="fontToggleBtn" role="switch" aria-checked="false"
+            onclick="SmartNaviCommon.toggleFontSize(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
+            class="ui-toggle" aria-label="文字サイズを標準と大きめで切り替える"></button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="themeStatusLabel" class="text-xs sm:text-sm font-semibold" style="color: var(--text-primary);">
+            配色：ライト
+          </span>
+          <button type="button" id="themeToggleBtn" role="switch" aria-checked="false"
+            onclick="SmartNaviCommon.toggleTheme(typeof onPrefUpdated === 'function' ? onPrefUpdated : null)"
+            class="ui-toggle" aria-label="配色をライトとダークで切り替える"></button>
+        </div>
+        
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+    <!-- ステータス＆開始アクションカード -->
+    <section class="ui-card p-5 sm:p-6 border-l-4 space-y-4" style="border-left-color: var(--accent-primary);">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold"
+          style="background-color: var(--accent-tint); color: var(--accent-primary);">
+          練習前のガイド（約2〜3分）
+        </span>
+        <span id="introCompletionBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full"
+          style="background-color: var(--bg-card-sub); color: var(--text-muted);">
+          状態：練習前
+        </span>
+      </div>
+
+      <div>
+        <h2 class="text-lg sm:text-xl font-bold" style="color: var(--text-primary);">紙のメモ帳に頼らず、スマホの「鍵の保管庫」で一発入力する練習</h2>
+        <p class="text-xs sm:text-sm mt-1.5 leading-relaxed" style="color: var(--text-secondary);">
+          会員サイトにログインする際、IDやパスワードを毎回キーボードで打つ代わりに、スマホに保存済みのログイン情報を呼び出して自動入力する便利な機能です。
+        </p>
+      </div>
+
+      <div class="p-3.5 rounded-[8px] border" style="background-color: var(--waiting-bg); border-color: var(--waiting-border);">
+        <div class="font-bold text-xs sm:text-sm mb-1" style="color: var(--waiting-fg);">
+          💡 なぜこの操作で迷子になりやすいの？
+        </div>
+        <p class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-primary);">
+          英数字や記号のパスワードを小さな画面で打つと打ち間違いが起きやすく、何回も失敗してロックされてしまうことがあります。スマホの自動入力機能を使えば正確かつ安全に入力できます。
+        </p>
+      </div>
+
+      <div class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <a href="./app.html"
+          class="ui-accent-btn flex-1 py-3.5 px-5 text-sm sm:text-base text-center flex items-center justify-center gap-2 no-underline shadow-sm">
+          <span>▶ 練習シミュレーターをはじめる</span>
+        </a>
+        <a href="../index.html"
+          class="ui-btn py-3.5 px-4 text-xs sm:text-sm text-center no-underline">
+          ← レッスン一覧へ戻る
+        </a>
+      </div>
+    </section>
+
+    <!-- 練習の流れプレビュー -->
+    <section class="ui-card p-5 sm:p-6 space-y-3">
+      <h3 class="font-bold text-base" style="color: var(--text-primary);">
+        📋 これから体験する練習の流れ
+      </h3>
+      <div class="space-y-2.5">
+          <div class="ui-card-sub p-3.5 flex items-start gap-3">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
+              style="background-color: var(--accent-primary); color: var(--accent-text);">1</span>
+            <div>
+              <div class="font-bold text-sm" style="color: var(--text-primary);">会員IDの入力欄をタップする</div>
+              <p class="text-xs sm:text-sm mt-0.5 leading-relaxed" style="color: var(--text-secondary);">入力枠を押すと、スマホに保存されているID候補が呼び出されます。</p>
+            </div>
+          </div>
+          <div class="ui-card-sub p-3.5 flex items-start gap-3">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
+              style="background-color: var(--accent-primary); color: var(--accent-text);">2</span>
+            <div>
+              <div class="font-bold text-sm" style="color: var(--text-primary);">保存済みの鍵（自動入力）を選ぶ</div>
+              <p class="text-xs sm:text-sm mt-0.5 leading-relaxed" style="color: var(--text-secondary);">「🔑 保存済みパスワードを自動入力」を押し、確認画面で「はい」を選びます。</p>
+            </div>
+          </div>
+          <div class="ui-card-sub p-3.5 flex items-start gap-3">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
+              style="background-color: var(--accent-primary); color: var(--accent-text);">3</span>
+            <div>
+              <div class="font-bold text-sm" style="color: var(--text-primary);">目のマークで中身を確認してログイン</div>
+              <p class="text-xs sm:text-sm mt-0.5 leading-relaxed" style="color: var(--text-secondary);">伏せ字（●●●●）の中身を「👁️ 中身を見る」で確認してからログインボタンを押します。</p>
+            </div>
+          </div>
+      </div>
+    </section>
+
+    <!-- 画面の重なり構造のポイント -->
+    <section class="ui-card p-5 sm:p-6 space-y-2">
+      <h3 class="font-bold text-base" style="color: var(--text-primary);">
+        🗺️ 練習画面で見える「スマホ立体階層マップ」のポイント
+      </h3>
+      <p class="text-xs sm:text-sm leading-relaxed" style="color: var(--text-secondary);">
+        このレッスンでは、スマホのホーム画面から「🔐 鍵の保管庫」アプリを開いて、裏側にどのようにIDとパスワードが保管されているかも覗くことができます。
+      </p>
+      <div class="pt-3 flex flex-wrap gap-3">
+        <a href="./app.html" class="ui-accent-btn px-5 py-3 text-xs sm:text-sm no-underline">
+          ▶ さっそく練習画面へ進む
+        </a>
+        
+        <a href="../screenshot/index.html" class="ui-btn px-4 py-3 text-xs sm:text-sm text-center no-underline">
+          次のテーマ「スクリーンショット」を見る →
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer mt-auto py-4 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+      <div>smart-navi スマートフォン操作練習シミュレーター</div>
+      <div class="font-semibold">© 2026 smart-navi</div>
+    </div>
+  </footer>
+
+  <script src="../assets/simulator-common.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      SmartNaviCommon.initPreferences();
+      const doneList = SmartNaviCommon.getCompletedLessons();
+      const badge = document.getElementById('introCompletionBadge');
+      if (doneList.includes('password-auth') && badge) {
+        badge.textContent = '✓ このレッスンは練習済みです';
+        badge.style.backgroundColor = 'var(--success-bg)';
+        badge.style.color = 'var(--success-fg)';
+      }
+    });
+  </script>
+</body>
+</html>
